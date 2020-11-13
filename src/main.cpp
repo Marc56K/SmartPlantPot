@@ -5,8 +5,9 @@
 #include "AiEsp32RotaryEncoder.h"
 #include "epd2in9.h"
 #include "epdpaint.h"
-#include "imagedata.h"
+#include "fonts.h"
 #include "Config.h"
+#include "SensorManager.h"
 
 #define COLORED 0
 #define UNCOLORED 1
@@ -67,16 +68,9 @@ bool ButtonPressed()
   return result;
 }
 
-double GetBatVoltage()
-{
-  double val = analogRead(BAT_LEVEL_PIN);
-  return 2.22 * 3.3 * val / 4095;
-}
-
 int countdown = 0;
-bool update()
+bool update(SensorManager& sm)
 {
-  //paint.SetRotate(ROTATE_90);
   paint.Clear(UNCOLORED);
 
   auto encoderDelta = rotaryEncoder.encoderChanged();
@@ -95,26 +89,24 @@ bool update()
     countdown += counter;
   }
 
-  uint16_t s0 = analogRead(SENSOR_0_VALUE_PIN);
-  uint16_t s1 = analogRead(SENSOR_1_VALUE_PIN);
-
   auto now = rtclock.Now();
 
   std::vector<String> lines;
-  lines.push_back(String("BAT_VOLTAGE: ") + GetBatVoltage());
-  lines.push_back(String("DATE: ") + now.ToString(true, false));
-  lines.push_back(String("TIME: ") + now.ToString(false, true));
-  lines.push_back(String("SLEEP_ETA: ") + String(countdown));
-  lines.push_back(String("BOTTON: ") + btnPressed);
+  lines.push_back(String("LATIN1: äöüÄÖÜß"));
+  lines.push_back(String("SLEEP_IN: ") + String(countdown));
+  lines.push_back(String("BAT: ") + sm.GetBatVoltage() + "V");
+  lines.push_back(String("DT: ") + now.ToString(true, false));
+  lines.push_back(String("TIME: ") + now.ToString(false, true));  
+  lines.push_back(String("BUTTON: ") + btnPressed);
   lines.push_back(String("ROT_ENC: ") + String(counter));
-  lines.push_back(String("SENSOR_0: ") + String(s0));
-  lines.push_back(String("SENSOR_1: ") + String(s1));
+  lines.push_back(String("SOIL: ") + String(sm.GetSoilHumidity()));
+  lines.push_back(String("TANK: ") + String(sm.GetWaterTankLevel()));
 
   for (size_t i = 0; i < lines.size(); i++)
   {
     String& msg = lines[i];
     Serial.println(msg);
-    paint.DrawStringAt(2, 2 + i * 15, msg.c_str(), &Font12, COLORED);
+    paint.DrawUtf8StringAt(2, 2 + i * 20, msg.c_str(), &Consolas20, COLORED);
   }
 
   epd.SetFrameMemory(paint.GetImage(), 0, 0, paint.GetWidth(), paint.GetHeight());
@@ -125,9 +117,6 @@ bool update()
 
 void setup()
 {
-  pinMode(SENSORS_CLOCK_VCC_PIN, OUTPUT);
-  digitalWrite(SENSORS_CLOCK_VCC_PIN, HIGH);
-
   // put your setup code here, to run once:
   Serial.begin(9600);
   Serial.println("starting...");
@@ -139,11 +128,6 @@ void setup()
   rotaryEncoder.setBoundaries(INT16_MIN / 2, INT16_MAX / 2, false);
   pinMode(ROTENC_SW_PIN, INPUT);
   attachInterrupt(ROTENC_SW_PIN, ButtonISR, FALLING);
-
-  pinMode(BAT_LEVEL_PIN, INPUT);
-
-  pinMode(SENSOR_0_VALUE_PIN, INPUT);
-  pinMode(SENSOR_1_VALUE_PIN, INPUT);
 
   pinMode(PUMP_VCC_PIN, OUTPUT);
   digitalWrite(PUMP_VCC_PIN, LOW);
@@ -170,8 +154,11 @@ void setup()
 
   Serial.println("started");
 
-  countdown = 120;
-  while (update());
+  countdown = 1000;
+  {
+    SensorManager sm;
+    while (update(sm));
+  }
 
   deepSleep(90);
 }
