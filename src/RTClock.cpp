@@ -1,14 +1,41 @@
 #include "RTClock.h"
-#include <DS3232RTC.h> 
+#include <DS3232RTC.h>
+
+String RTDateTime::ToString(const bool date, const bool time) const
+{
+  String result;
+  if (date)
+  {
+    result += year;
+    result += "-";
+    result += StringFormatHelper::ToString(month, 2);
+    result += "-";
+    result += StringFormatHelper::ToString(day, 2);
+  }
+
+  if (date && time)
+  {
+    result += " ";
+  }
+
+  if (time)
+  {
+    result += StringFormatHelper::ToString(hour, 2);
+    result += ":";
+    result += StringFormatHelper::ToString(minute, 2);
+    result += ":";
+    result += StringFormatHelper::ToString(second, 2);
+  }
+  return result;
+}
 
 RTClock::RTClock()
 {
 }
 
 RTClock::~RTClock()
-{  
+{
 }
-
 
 void RTClock::WakeInOneMinute()
 {
@@ -26,9 +53,9 @@ RTDateTime RTClock::Now()
   delay(10);
   DS3232RTC RTC(true);
   time_t t = RTC.get();
- 
+
   RTDateTime dt = {};
-  
+
   dt.year = year(t);
   dt.month = month(t);
   dt.day = day(t);
@@ -39,7 +66,7 @@ RTDateTime RTClock::Now()
   return dt;
 }
 
-bool RTClock::SetFromString(const String& inputStr)
+bool RTClock::SetFromString(const String &inputStr)
 {
   return false;
 }
