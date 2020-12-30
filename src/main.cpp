@@ -8,17 +8,13 @@
 #include "fonts.h"
 #include "Config.h"
 #include "SensorManager.h"
-
-#define COLORED 0
-#define UNCOLORED 1
+#include "Display.h"
 
 RTClock rtclock;
 
 AiEsp32RotaryEncoder rotaryEncoder(ROTENC_A_PIN, ROTENC_B_PIN, -1, -1);
 
-unsigned char image[EPD_WIDTH * EPD_HEIGHT];
-Paint paint(image, EPD_WIDTH, EPD_HEIGHT); // width should be the multiple of 8
-Epd epd;
+Display display;
 
 void print_wakeup_reason(){
   esp_sleep_wakeup_cause_t wakeup_reason;
@@ -71,7 +67,7 @@ bool ButtonPressed()
 int countdown = 0;
 bool update(SensorManager& sm)
 {
-  paint.Clear(UNCOLORED);
+  display.Clear();
 
   auto encoderDelta = rotaryEncoder.encoderChanged();
   if (encoderDelta != 0)
@@ -91,6 +87,8 @@ bool update(SensorManager& sm)
 
   auto now = rtclock.Now();
 
+  display.RenderMainScreen(sm);
+
   std::vector<String> lines;
   lines.push_back(String("LATIN1: äöüÄÖÜß"));
   lines.push_back(String("SLEEP_IN: ") + String(countdown));
@@ -104,13 +102,12 @@ bool update(SensorManager& sm)
 
   for (size_t i = 0; i < lines.size(); i++)
   {
-    String& msg = lines[i];
-    Serial.println(msg);
-    paint.DrawUtf8StringAt(2, 2 + i * 20, msg.c_str(), &Consolas20, COLORED);
+    Serial.println(lines[i]);
   }
 
-  epd.SetFrameMemory(paint.GetImage(), 0, 0, paint.GetWidth(), paint.GetHeight());
-  epd.DisplayFrame();
+  display.RenderDebugMessages(lines);
+
+  display.Present();
 
   return --countdown >= 0;
 }
@@ -136,21 +133,7 @@ void setup()
 
   delay(10);
 
-  if (epd.Init(lut_full_update) != 0) {
-      Serial.print("e-Paper init failed");
-      return;
-  }
-
-  epd.ClearFrameMemory(0xFF);   // bit set = white, bit reset = black
-  epd.DisplayFrame();
-  epd.ClearFrameMemory(0xFF);   // bit set = white, bit reset = black
-  epd.DisplayFrame();
-
-  if (epd.Init(lut_partial_update) != 0)
-  {
-    Serial.println("e-Paper init failed");
-    return;
-  }
+  display.Init();
 
   Serial.println("started");
 
