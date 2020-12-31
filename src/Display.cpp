@@ -150,11 +150,13 @@ void Display::RenderMainScreen(SensorManager& sm)
 
 void Display::RenderDebugMessages(std::vector<String>& messages)
 {
-for (size_t i = 0; i < messages.size(); i++)
-  {
-    String& msg = messages[i];
-    int y = 2 + i * 20;
-    _paint.DrawFilledRectangle(0, y + 2, 9 * msg.length() + 2, y + 16, 1);
-    _paint.DrawUtf8StringAt(2, y, msg.c_str(), &Consolas20, 0);
-  }
+    auto& fnt = Font12;
+    for (size_t i = 0; i < messages.size(); i++)
+    {
+        String& msg = messages[i];
+        int y = 2 + i * (fnt.Height + 2);
+
+        _paint.DrawFilledRectangle(0, y, msg.length() * fnt.Width + 2, y + fnt.Height, 0);
+        _paint.DrawUtf8StringAt(2, y + 1, msg.c_str(), &fnt, 1);
+    }
 }

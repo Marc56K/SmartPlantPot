@@ -90,7 +90,6 @@ bool update(SensorManager& sm)
   display.RenderMainScreen(sm);
 
   std::vector<String> lines;
-  lines.push_back(String("LATIN1: äöüÄÖÜß"));
   lines.push_back(String("SLEEP_IN: ") + String(countdown));
   lines.push_back(String("BAT: ") + sm.GetBatVoltage() + "V");
   lines.push_back(String("DT: ") + now.ToString(true, false));
