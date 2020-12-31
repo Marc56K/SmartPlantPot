@@ -119,7 +119,7 @@ bool update(SensorManager &sm)
 
   for (size_t i = 0; i < lines.size(); i++)
   {
-    Serial.println(lines[i]);
+    //Serial.println(lines[i]);
   }
 
   display.RenderDebugMessages(lines);
@@ -160,7 +160,7 @@ void setup()
   {
     SensorManager sm;
 
-    settingsPage.Add(std::make_shared<NumberEditor>("Humidity %", 0, 1, 0.0, 100.0, 40.0));
+    settingsPage.Add(std::make_shared<NumberEditor>("Humidity %", 0, 1, 0.0, 100.0, 40.0, [&](const double val) { Serial.println(val); }));
     settingsPage.Add(std::make_shared<NumberEditor>("Pump Sec.", 1, 0.1, 0.1, 5.0, 0.5));
     settingsPage.Add(std::make_shared<NumberEditor>("Schedule HH", 0, 1, 0, 23, 7));
     settingsPage.Add(std::make_shared<NumberEditor>("Schedule MM", 0, 1, 0, 59, 0));
