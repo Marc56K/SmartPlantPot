@@ -50,7 +50,6 @@ void RTClock::WakeInOneMinute()
 
 RTDateTime RTClock::Now()
 {
-  delay(10);
   DS3232RTC RTC(true);
   time_t t = RTC.get();
 

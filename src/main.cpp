@@ -98,6 +98,7 @@ bool update(SensorManager& sm)
   lines.push_back(String("ROT_ENC: ") + String(counter));
   lines.push_back(String("SOIL: ") + String(sm.GetSoilHumidity()));
   lines.push_back(String("TANK: ") + String(sm.GetWaterTankLevel()));
+  lines.push_back(String("TEMP: ") + String(sm.GetTemperature()));
 
   for (size_t i = 0; i < lines.size(); i++)
   {

@@ -10,4 +10,5 @@ public:
     double GetBatVoltage();
     double GetSoilHumidity();
     double GetWaterTankLevel();
+    double GetTemperature();
 };
