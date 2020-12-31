@@ -9,26 +9,41 @@
 #include "Config.h"
 #include "SensorManager.h"
 #include "Display.h"
+#include "NumberEditor.h"
 
 RTClock rtclock;
 
 AiEsp32RotaryEncoder rotaryEncoder(ROTENC_A_PIN, ROTENC_B_PIN, -1, -1);
 
 Display display;
+PropertyPage settingsPage(Font12);
 
-void print_wakeup_reason(){
+void print_wakeup_reason()
+{
   esp_sleep_wakeup_cause_t wakeup_reason;
 
   wakeup_reason = esp_sleep_get_wakeup_cause();
 
-  switch(wakeup_reason)
+  switch (wakeup_reason)
   {
-    case ESP_SLEEP_WAKEUP_EXT0 : Serial.println("Wakeup caused by external signal using RTC_IO"); break;
-    case ESP_SLEEP_WAKEUP_EXT1 : Serial.println("Wakeup caused by external signal using RTC_CNTL"); break;
-    case ESP_SLEEP_WAKEUP_TIMER : Serial.println("Wakeup caused by timer"); break;
-    case ESP_SLEEP_WAKEUP_TOUCHPAD : Serial.println("Wakeup caused by touchpad"); break;
-    case ESP_SLEEP_WAKEUP_ULP : Serial.println("Wakeup caused by ULP program"); break;
-    default : Serial.printf("Wakeup was not caused by deep sleep: %d\n",wakeup_reason); break;
+  case ESP_SLEEP_WAKEUP_EXT0:
+    Serial.println("Wakeup caused by external signal using RTC_IO");
+    break;
+  case ESP_SLEEP_WAKEUP_EXT1:
+    Serial.println("Wakeup caused by external signal using RTC_CNTL");
+    break;
+  case ESP_SLEEP_WAKEUP_TIMER:
+    Serial.println("Wakeup caused by timer");
+    break;
+  case ESP_SLEEP_WAKEUP_TOUCHPAD:
+    Serial.println("Wakeup caused by touchpad");
+    break;
+  case ESP_SLEEP_WAKEUP_ULP:
+    Serial.println("Wakeup caused by ULP program");
+    break;
+  default:
+    Serial.printf("Wakeup was not caused by deep sleep: %d\n", wakeup_reason);
+    break;
   }
 }
 
@@ -65,25 +80,27 @@ bool ButtonPressed()
 }
 
 int countdown = 0;
-bool update(SensorManager& sm)
+bool update(SensorManager &sm)
 {
   display.Clear();
 
+  auto btnPressed = ButtonPressed();
   auto encoderDelta = rotaryEncoder.encoderChanged();
   if (encoderDelta != 0)
   {
     if (abs(encoderDelta) > 1)
+    {
       encoderDelta /= 2;
-    counter += encoderDelta;
+    }
   }
 
-  digitalWrite(PUMP_VCC_PIN, counter == 5 ? HIGH : LOW);
-
-  auto btnPressed = ButtonPressed();
   if (btnPressed)
-  {
-    countdown += counter;
-  }
+    settingsPage.Click();
+
+  if (encoderDelta != 0)
+    settingsPage.Scroll(encoderDelta);
+
+  //digitalWrite(PUMP_VCC_PIN, counter == 5 ? HIGH : LOW);
 
   auto now = rtclock.Now();
 
@@ -93,9 +110,9 @@ bool update(SensorManager& sm)
   lines.push_back(String("SLEEP_IN: ") + String(countdown));
   lines.push_back(String("BAT: ") + sm.GetBatVoltage() + "V");
   lines.push_back(String("DT: ") + now.ToString(true, false));
-  lines.push_back(String("TIME: ") + now.ToString(false, true));  
+  lines.push_back(String("TIME: ") + now.ToString(false, true));
   lines.push_back(String("BUTTON: ") + btnPressed);
-  lines.push_back(String("ROT_ENC: ") + String(counter));
+  lines.push_back(String("ROT_ENC: ") + String(encoderDelta));
   lines.push_back(String("SOIL: ") + String(sm.GetSoilHumidity()));
   lines.push_back(String("TANK: ") + String(sm.GetWaterTankLevel()));
   lines.push_back(String("TEMP: ") + String(sm.GetTemperature()));
@@ -106,6 +123,8 @@ bool update(SensorManager& sm)
   }
 
   display.RenderDebugMessages(lines);
+
+  display.RenderSettingsScreen(settingsPage);
 
   display.Present();
 
@@ -140,7 +159,14 @@ void setup()
   countdown = 1000;
   {
     SensorManager sm;
-    while (update(sm));
+
+    settingsPage.Add(std::make_shared<NumberEditor>("Humidity %", 0, 1, 0.0, 100.0, 40.0));
+    settingsPage.Add(std::make_shared<NumberEditor>("Pump Sec.", 1, 0.1, 0.1, 5.0, 0.5));
+    settingsPage.Add(std::make_shared<NumberEditor>("Schedule HH", 0, 1, 0, 23, 7));
+    settingsPage.Add(std::make_shared<NumberEditor>("Schedule MM", 0, 1, 0, 59, 0));
+
+    while (update(sm))
+      ;
   }
 
   deepSleep(90);

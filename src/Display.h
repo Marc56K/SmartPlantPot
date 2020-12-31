@@ -3,6 +3,7 @@
 #include <epd2in9.h>
 #include <epdpaint.h>
 #include <string>
+#include <PropertyPage.h>
 
 class Display
 {
@@ -23,6 +24,8 @@ public:
 
     void RenderMainScreen(SensorManager& sm);
     void RenderDebugMessages(std::vector<String>& messages);
+
+    void RenderSettingsScreen(PropertyPage& settingsPage);
 
 private:
     unsigned char _buffer[EPD_WIDTH * EPD_HEIGHT];

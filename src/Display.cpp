@@ -160,3 +160,8 @@ void Display::RenderDebugMessages(std::vector<String>& messages)
         _paint.DrawUtf8StringAt(2, y + 1, msg.c_str(), &fnt, 1);
     }
 }
+
+void Display::RenderSettingsScreen(PropertyPage& settingsPage)
+{
+    settingsPage.Render(_paint, 1, 130);
+}
