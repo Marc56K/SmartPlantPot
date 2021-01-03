@@ -10,6 +10,7 @@
 #include "SensorManager.h"
 #include "Display.h"
 #include "NumberEditor.h"
+#include "TimeEditor.h"
 
 RTClock rtclock;
 
@@ -161,9 +162,10 @@ void setup()
     SensorManager sm;
 
     settingsPage.Add(std::make_shared<NumberEditor>("Humidity", "%", 0, 1, 0.0, 100.0, 40.0, [&](const double val) { Serial.println(val); }));
-    settingsPage.Add(std::make_shared<NumberEditor>("Pump", "s", 1, 0.1, 0.1, 5.0, 0.5));
+    settingsPage.Add(std::make_shared<NumberEditor>("Pump Duration", "s", 1, 0.1, 0.1, 5.0, 0.5));
     settingsPage.Add(std::make_shared<NumberEditor>("Schedule HH", "", 0, 1, 0, 23, 7));
     settingsPage.Add(std::make_shared<NumberEditor>("Schedule MM", "", 0, 1, 0, 59, 0));
+    settingsPage.Add(std::make_shared<TimeEditor>("Schedule", 8, 30));
 
     while (update(sm))
       ;
