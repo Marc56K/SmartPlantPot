@@ -163,5 +163,5 @@ void Display::RenderDebugMessages(std::vector<String>& messages)
 
 void Display::RenderSettingsScreen(PropertyPage& settingsPage)
 {
-    settingsPage.Render(_paint, 1, 150);
+    settingsPage.Render(_paint, 4, 150, 120);
 }
