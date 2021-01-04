@@ -69,6 +69,7 @@ public:
     int  Init(const unsigned char* lut);
     void SendCommand(unsigned char command);
     void SendData(unsigned char data);
+    bool IsIdle(void);
     void WaitUntilIdle(void);
     void Reset(void);
     void SetFrameMemory(
@@ -80,7 +81,7 @@ public:
     );
     void SetFrameMemory(const unsigned char* image_buffer);
     void ClearFrameMemory(unsigned char color);
-    void DisplayFrame(void);
+    void DisplayFrame(bool wait = true);
     void Sleep(void);
 
 private:

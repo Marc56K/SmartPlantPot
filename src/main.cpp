@@ -2,19 +2,17 @@
 #include <esp_deep_sleep.h>
 #include <SPI.h>
 #include "RTClock.h"
-#include "AiEsp32RotaryEncoder.h"
 #include "epd2in9.h"
 #include "epdpaint.h"
 #include "fonts.h"
 #include "Config.h"
 #include "SensorManager.h"
+#include "InputManager.h"
 #include "Display.h"
 #include "NumberEditor.h"
 #include "TimeEditor.h"
 
 RTClock rtclock;
-
-AiEsp32RotaryEncoder rotaryEncoder(ROTENC_A_PIN, ROTENC_B_PIN, -1, -1);
 
 Display display;
 PropertyPage settingsPage(Font12);
@@ -66,34 +64,23 @@ void deepSleep(int seconds)
 }
 
 int counter = 0;
-volatile bool buttonPressed;
-
-void ButtonISR()
-{
-  buttonPressed = true;
-}
-
-bool ButtonPressed()
-{
-  bool result = buttonPressed;
-  buttonPressed = false;
-  return result;
-}
-
 int countdown = 0;
+unsigned long lastUpdate = 0;
 bool update(SensorManager &sm)
 {
+  auto t = millis();
+  int updatesPerSecond = 0;
+  if (lastUpdate != 0)
+  {
+    float deltaT = 0.001f * (t - lastUpdate);
+    updatesPerSecond = 1.0 / deltaT;
+  }
+  lastUpdate = t;
+
   display.Clear();
 
-  auto btnPressed = ButtonPressed();
-  auto encoderDelta = rotaryEncoder.encoderChanged();
-  if (encoderDelta != 0)
-  {
-    if (abs(encoderDelta) > 1)
-    {
-      encoderDelta /= 2;
-    }
-  }
+  auto btnPressed = InputManager::ButtonPressed();
+  auto encoderDelta = InputManager::GetRotaryEncoderDelta();
 
   if (btnPressed)
     settingsPage.Click();
@@ -108,6 +95,7 @@ bool update(SensorManager &sm)
   display.RenderMainScreen(sm);
 
   std::vector<String> lines;
+  lines.push_back(String("TICKS_PER_SEC: ") + String(updatesPerSecond));
   lines.push_back(String("SLEEP_IN: ") + String(countdown));
   lines.push_back(String("BAT: ") + sm.GetBatVoltage() + "V");
   lines.push_back(String("DT: ") + now.ToString(true, false));
@@ -140,11 +128,7 @@ void setup()
 
   print_wakeup_reason();
 
-  rotaryEncoder.begin();
-  rotaryEncoder.setup([] { rotaryEncoder.readEncoder_ISR(); });
-  rotaryEncoder.setBoundaries(INT16_MIN / 2, INT16_MAX / 2, false);
-  pinMode(ROTENC_SW_PIN, INPUT);
-  attachInterrupt(ROTENC_SW_PIN, ButtonISR, FALLING);
+  InputManager::Init();
 
   pinMode(PUMP_VCC_PIN, OUTPUT);
   digitalWrite(PUMP_VCC_PIN, LOW);
@@ -157,12 +141,12 @@ void setup()
 
   Serial.println("started");
 
-  countdown = 1000;
+  countdown = 10000;
   {
     SensorManager sm;
 
     settingsPage.Add(std::make_shared<NumberEditor>("Humidity", "%", 0, 1, 0.0, 100.0, 40.0, [&](const double val) { Serial.println(val); }));
-    settingsPage.Add(std::make_shared<NumberEditor>("Pump Duration", "s", 1, 0.1, 0.1, 5.0, 0.5));
+    settingsPage.Add(std::make_shared<NumberEditor>("Pumping", "s", 1, 0.1, 0.1, 5.0, 0.5));
     settingsPage.Add(std::make_shared<NumberEditor>("Schedule HH", "", 0, 1, 0, 23, 7));
     settingsPage.Add(std::make_shared<NumberEditor>("Schedule MM", "", 0, 1, 0, 59, 0));
     settingsPage.Add(std::make_shared<TimeEditor>("Schedule", 8, 30));

@@ -50,9 +50,13 @@ void Display::Clear()
 
 bool Display::Present()
 {
-    _epd.SetFrameMemory(_paint.GetImage(), 0, 0, _paint.GetWidth(), _paint.GetHeight());
-    _epd.DisplayFrame();
-    return true;
+    if (_epd.IsIdle())
+    {
+        _epd.SetFrameMemory(_paint.GetImage(), 0, 0, _paint.GetWidth(), _paint.GetHeight());
+        _epd.DisplayFrame(false);
+        return true;
+    }
+    return false;
 }
 
 void Display::RenderTankIndicator(const uint32_t x, const uint32_t y, const float v)

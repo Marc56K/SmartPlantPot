@@ -84,6 +84,10 @@ void Epd::SendData(unsigned char data) {
     SpiTransfer(data);
 }
 
+bool Epd::IsIdle(void) {
+    return DigitalRead(busy_pin) == LOW;        //LOW: idle, HIGH: busy
+}
+
 /**
  *  @brief: Wait until the busy_pin goes LOW
  */
@@ -210,12 +214,23 @@ void Epd::ClearFrameMemory(unsigned char color) {
  *          the the next action of SetFrameMemory or ClearFrame will 
  *          set the other memory area.
  */
-void Epd::DisplayFrame(void) {
-    SendCommand(DISPLAY_UPDATE_CONTROL_2);
-    SendData(0xC4);
-    SendCommand(MASTER_ACTIVATION);
-    SendCommand(TERMINATE_FRAME_READ_WRITE);
-    WaitUntilIdle();
+void Epd::DisplayFrame(bool wait) {
+    if (wait && !IsIdle())
+    {
+        WaitUntilIdle();
+    }
+    
+    if (IsIdle())
+    {
+        SendCommand(DISPLAY_UPDATE_CONTROL_2);
+        SendData(0xC4);
+        SendCommand(MASTER_ACTIVATION);
+        SendCommand(TERMINATE_FRAME_READ_WRITE);
+        if (wait)
+        {
+            WaitUntilIdle();
+        }
+    }
 }
 
 /**
