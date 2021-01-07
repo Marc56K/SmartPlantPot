@@ -12,6 +12,7 @@
 #include "NumberEditor.h"
 #include "TimeEditor.h"
 #include "BoolEditor.h"
+#include "StringEditor.h"
 
 RTClock rtclock;
 
@@ -150,6 +151,7 @@ void setup()
     settingsPage.Add(std::make_shared<NumberEditor>("Pumping", "s", 1, 0.1, 0.1, 5.0, 0.5));
     settingsPage.Add(std::make_shared<TimeEditor>("Schedule", 8, 30));
     settingsPage.Add(std::make_shared<BoolEditor>("Enabled", false));
+    settingsPage.Add(std::make_shared<StringEditor>("Name", "test123foobar"));
 
     while (update(sm))
       ;
