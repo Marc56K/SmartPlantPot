@@ -9,10 +9,6 @@
 #include "SensorManager.h"
 #include "InputManager.h"
 #include "Display.h"
-#include "NumberEditor.h"
-#include "TimeEditor.h"
-#include "BoolEditor.h"
-#include "StringEditor.h"
 
 RTClock rtclock;
 
@@ -152,6 +148,9 @@ void setup()
     settingsPage.Add(std::make_shared<TimeEditor>("Schedule", 8, 30));
     settingsPage.Add(std::make_shared<BoolEditor>("Enabled", false));
     settingsPage.Add(std::make_shared<StringEditor>("Name", "test123foobar"));
+
+    std::vector<std::string> options = { "foo", "bar", "bazz" };
+    settingsPage.Add(std::make_shared<OptionEditor>("Options", options, 0));
 
     while (update(sm))
       ;
