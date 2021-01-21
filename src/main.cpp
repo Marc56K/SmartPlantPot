@@ -13,7 +13,9 @@
 RTClock rtclock;
 
 Display display;
-PropertyPage settingsPage(Font12);
+std::shared_ptr<PropertyPage> settingsPage = std::make_shared<PropertyPage>();
+std::shared_ptr<PropertyPage> wifiPage = std::make_shared<PropertyPage>();
+PageNavigator navigator;
 
 void print_wakeup_reason()
 {
@@ -81,10 +83,10 @@ bool update(SensorManager &sm)
   auto encoderDelta = InputManager::GetRotaryEncoderDelta();
 
   if (btnPressed)
-    settingsPage.Click();
+    navigator.Click();
 
   if (encoderDelta != 0)
-    settingsPage.Scroll(encoderDelta);
+    navigator.Scroll(encoderDelta);
 
   //digitalWrite(PUMP_VCC_PIN, counter == 5 ? HIGH : LOW);
 
@@ -111,7 +113,7 @@ bool update(SensorManager &sm)
 
   display.RenderDebugMessages(lines);
 
-  display.RenderSettingsScreen(settingsPage);
+  display.RenderPages(navigator);
 
   display.Present();
 
@@ -143,14 +145,20 @@ void setup()
   {
     SensorManager sm;
 
-    settingsPage.Add(std::make_shared<NumberEditor>("Humidity", "%", 0, 1, 0.0, 100.0, 40.0, [&](const double val) { Serial.println(val); }));
-    settingsPage.Add(std::make_shared<NumberEditor>("Pumping", "s", 1, 0.1, 0.1, 5.0, 0.5));
-    settingsPage.Add(std::make_shared<TimeEditor>("Schedule", 8, 30));
-    settingsPage.Add(std::make_shared<BoolEditor>("Enabled", false));
-    settingsPage.Add(std::make_shared<StringEditor>("Name", "test123foobar"));
+    settingsPage->Add(std::make_shared<NumberEditor>("Humidity", "%", 0, 1, 0.0, 100.0, 40.0, [&](const double val) { Serial.println(val); }));
+    //settingsPage->Add(std::make_shared<NumberEditor>("Pumping", "s", 1, 0.1, 0.1, 5.0, 0.5));
+    settingsPage->Add(std::make_shared<TimeEditor>("Schedule", 8, 30));
+    settingsPage->Add(std::make_shared<BoolEditor>("Enabled", false));
+    settingsPage->Add(std::make_shared<StringEditor>("Name", "test123foobar"));
 
     std::vector<std::string> options = { "foo", "bar", "bazz" };
-    settingsPage.Add(std::make_shared<OptionEditor>("Options", options, 0));
+    settingsPage->Add(std::make_shared<OptionEditor>("Options", options, 0));
+
+    wifiPage->Add(std::make_shared<StringEditor>("SSID", "MR 2.4 GHz"));
+    wifiPage->Add(std::make_shared<StringEditor>("KEY", "abc123"));
+
+    navigator.AddPage("Settings", settingsPage);
+    navigator.AddPage("WiFi", wifiPage);
 
     while (update(sm))
       ;

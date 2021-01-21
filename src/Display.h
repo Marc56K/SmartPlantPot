@@ -4,7 +4,7 @@
 #include <epdpaint.h>
 #include <string>
 #include <PropertyPage.h>
-
+#include <PageNavigator.h>
 class Display
 {
 public:
@@ -25,7 +25,7 @@ public:
     void RenderMainScreen(SensorManager& sm);
     void RenderDebugMessages(std::vector<String>& messages);
 
-    void RenderSettingsScreen(PropertyPage& settingsPage);
+    void RenderPages(PageNavigator& navigator);
 
 private:
     unsigned char _buffer[EPD_WIDTH * EPD_HEIGHT];

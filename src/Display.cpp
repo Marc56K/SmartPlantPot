@@ -165,7 +165,9 @@ void Display::RenderDebugMessages(std::vector<String>& messages)
     }
 }
 
-void Display::RenderSettingsScreen(PropertyPage& settingsPage)
+void Display::RenderPages(PageNavigator& navigator)
 {
-    settingsPage.Render(_paint, 4, 150, 120);
+    navigator.SetWdith(120);
+    navigator.SetHeight(120);
+    navigator.Render(_paint, 4, 145);
 }
