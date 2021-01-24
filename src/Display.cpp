@@ -167,7 +167,7 @@ void Display::RenderDebugMessages(std::vector<String>& messages)
 
 void Display::RenderPages(PageNavigator& navigator)
 {
-    navigator.SetWdith(120);
-    navigator.SetHeight(120);
-    navigator.Render(_paint, 4, 145);
+    navigator.SetWdith(EPD_WIDTH);
+    navigator.SetHeight(267);
+    navigator.Render(_paint, 0, 0);
 }

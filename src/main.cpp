@@ -9,12 +9,14 @@
 #include "SensorManager.h"
 #include "InputManager.h"
 #include "Display.h"
+#include "TextPage.h"
 
 RTClock rtclock;
 
 Display display;
 std::shared_ptr<PropertyPage> settingsPage = std::make_shared<PropertyPage>();
 std::shared_ptr<PropertyPage> wifiPage = std::make_shared<PropertyPage>();
+std::shared_ptr<TextPage> debugPage = std::make_shared<TextPage>();
 PageNavigator navigator;
 
 void print_wakeup_reason()
@@ -94,24 +96,23 @@ bool update(SensorManager &sm)
 
   display.RenderMainScreen(sm);
 
-  std::vector<String> lines;
-  lines.push_back(String("TICKS_PER_SEC: ") + String(updatesPerSecond));
-  lines.push_back(String("SLEEP_IN: ") + String(countdown));
-  lines.push_back(String("BAT: ") + sm.GetBatVoltage() + "V");
-  lines.push_back(String("DT: ") + now.ToString(true, false));
-  lines.push_back(String("TIME: ") + now.ToString(false, true));
-  lines.push_back(String("BUTTON: ") + btnPressed);
-  lines.push_back(String("ROT_ENC: ") + String(encoderDelta));
-  lines.push_back(String("SOIL: ") + String(sm.GetSoilHumidity()));
-  lines.push_back(String("TANK: ") + String(sm.GetWaterTankLevel()));
-  lines.push_back(String("TEMP: ") + String(sm.GetTemperature()));
+  std::vector<std::string>& lines = debugPage->Lines();
+  lines.clear();
+  lines.push_back(std::string("TICKS_PER_SEC: ") + String(updatesPerSecond).c_str());
+  lines.push_back(std::string("SLEEP_IN: ") + String(countdown).c_str());
+  lines.push_back(std::string("BAT: ") + String(sm.GetBatVoltage()).c_str() + "V");
+  lines.push_back(std::string("DT: ") + now.ToString(true, false).c_str());
+  lines.push_back(std::string("TIME: ") + now.ToString(false, true).c_str());
+  lines.push_back(std::string("BUTTON: ") + String(btnPressed).c_str());
+  lines.push_back(std::string("ROT_ENC: ") + String(encoderDelta).c_str());
+  lines.push_back(std::string("SOIL: ") + String(sm.GetSoilHumidity()).c_str());
+  lines.push_back(std::string("TANK: ") + String(sm.GetWaterTankLevel()).c_str());
+  lines.push_back(std::string("TEMP: ") + String(sm.GetTemperature()).c_str());
 
   for (size_t i = 0; i < lines.size(); i++)
   {
     //Serial.println(lines[i]);
   }
-
-  display.RenderDebugMessages(lines);
 
   display.RenderPages(navigator);
 
@@ -157,8 +158,10 @@ void setup()
     wifiPage->Add(std::make_shared<StringEditor>("SSID", "MR 2.4 GHz"));
     wifiPage->Add(std::make_shared<StringEditor>("KEY", "abc123"));
 
+    navigator.AddPage("", nullptr);
     navigator.AddPage("Settings", settingsPage);
     navigator.AddPage("WiFi", wifiPage);
+    navigator.AddPage("Stats", debugPage);
 
     while (update(sm))
       ;
