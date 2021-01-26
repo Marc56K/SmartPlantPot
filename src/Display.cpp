@@ -1,4 +1,5 @@
 #include "Display.h"
+#include "HomePage.h"
 #include <images.h>
 
 extern sIMAGE IMG_tank_0;
@@ -8,7 +9,7 @@ extern sIMAGE IMG_tank_75;
 extern sIMAGE IMG_tank_100;
 
 Display::Display()
-    : _paint(_buffer, EPD_WIDTH, EPD_HEIGHT)
+    : _paint(_buffer, EPD_WIDTH, EPD_HEIGHT), _infoPage(std::make_shared<TextPage>())
 {
 
 }
@@ -18,7 +19,7 @@ Display::~Display()
     
 }
 
-bool Display::Init()
+bool Display::Init(AppContext& ctx)
 {
     if (_epd.Init(lut_full_update) != 0)
     {
@@ -36,6 +37,10 @@ bool Display::Init()
         Serial.println("e-Paper init failed");
         return false;
     }
+
+    _navigator.AddPage("", std::make_shared<HomePage>(ctx));  
+    ctx.Settings().CreatePropertyPages(_navigator);
+    _navigator.AddPage("Info", _infoPage);
 
     return true;
 }

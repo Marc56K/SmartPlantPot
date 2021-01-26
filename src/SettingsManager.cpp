@@ -6,6 +6,7 @@
 #define EEPROM_SIZE 512
 
 SettingsManager::SettingsManager()
+    : _pendingChanges(false)
 {
 }
 
@@ -52,56 +53,112 @@ void SettingsManager::LoadFromEEPROM()
     }
     EEPROM.end();
 
+    _pendingChanges = false;
+
     InitDefaultValues();
+}
+
+void SettingsManager::CreatePropertyPages(PageNavigator& navigator)
+{
+    LoadFromEEPROM();
+
+    auto onSelectedChanged = [&]() { SaveToEEPROM(); };
+
+    auto p = std::make_shared<PropertyPage>(onSelectedChanged);    
+    p->Add(std::make_shared<StringEditor>(
+        "SSID", 
+        GetStringValue(WIFI_SSID), 
+        [&](const std::string& val) 
+        { 
+            SetValue(WIFI_SSID, val);
+        }));
+
+    p->Add(std::make_shared<StringEditor>(
+        "KEY",
+        GetStringValue(WIFI_KEY),
+        [&](const std::string& val)
+        {
+            SetValue(WIFI_KEY, val);
+        }));
+
+    navigator.AddPage("WiFi", p);
+
+    p = std::make_shared<PropertyPage>(onSelectedChanged);
+    p->Add(std::make_shared<TimeEditor>(
+        "Time", 
+        GetIntValue(PUMP_TIME_HH),
+        GetIntValue(PUMP_TIME_MM),
+        [&](const uint8_t hh, const uint8_t mm)
+        {
+            SetValue(PUMP_TIME_HH, hh);
+            SetValue(PUMP_TIME_MM, mm);
+        }));
+
+    p->Add(std::make_shared<NumberEditor>(
+        "Duration",
+        "s", 1, 0.1, 0.0, 5,
+        GetFloatValue(PUMP_DURATION),
+        [&](const double val)
+        {
+            SetValue(PUMP_DURATION, val);
+        }));
+
+    navigator.AddPage("Pumping", p);
 }
 
 void SettingsManager::InitDefaultValues()
 {
-    bool save = false;
-    if (!HasValue(Setting::PUMP_DURATION))
+    if (!HasValue(PUMP_DURATION))
     {
-        SetValue(Setting::PUMP_DURATION, "0.5");
-        save = true;
+        SetValue(PUMP_DURATION, "0.5");
     }
 
-    if (!HasValue(Setting::TARGET_SOIL_MOISTURE))
+    if (!HasValue(PUMP_TIME_HH))
     {
-        SetValue(Setting::TARGET_SOIL_MOISTURE, "0.5");
-        save = true;
+        SetValue(PUMP_TIME_HH, "7");
     }
 
-    if (save)
+    if (!HasValue(PUMP_TIME_MM))
     {
-        SaveToEEPROM();
+        SetValue(PUMP_TIME_MM, "0");
     }
+
+    SaveToEEPROM();
 }
 
 void SettingsManager::SaveToEEPROM()
 {
-    EEPROM.begin(EEPROM_SIZE);
-    uint8_t numEntries = (uint8_t)_settings.size();
-    uint8_t* ptr = EEPROM.getDataPtr();
-
-    uint32_t* crcPtr = (uint32_t*)ptr;
-    ptr += sizeof(uint32_t);
-
-    *ptr = numEntries;
-    ptr += sizeof(uint8_t);
-    for (auto& it : _settings)
+    if (_pendingChanges)
     {
-        *((Setting*)ptr) = it.first;
-        ptr += sizeof(Setting);
+        Serial.println("Writing to EEPROM ...");
+        EEPROM.begin(EEPROM_SIZE);
+        uint8_t numEntries = (uint8_t)_settings.size();
+        uint8_t* ptr = EEPROM.getDataPtr();
 
-        *((uint16_t*)ptr) = (uint16_t)it.second.size();
-        ptr += sizeof(uint16_t);
+        uint32_t* crcPtr = (uint32_t*)ptr;
+        ptr += sizeof(uint32_t);
 
-        memcpy(ptr, it.second.data(), it.second.size());
-        ptr += it.second.size();
+        *ptr = numEntries;
+        ptr += sizeof(uint8_t);
+        for (auto& it : _settings)
+        {
+            *((Setting*)ptr) = it.first;
+            ptr += sizeof(Setting);
+
+            *((uint16_t*)ptr) = (uint16_t)it.second.size();
+            ptr += sizeof(uint16_t);
+
+            memcpy(ptr, it.second.data(), it.second.size());
+            ptr += it.second.size();
+        }
+
+        *crcPtr = ComputeCrc(EEPROM.getDataPtr() + sizeof(uint32_t), EEPROM_SIZE - sizeof(uint32_t));
+        EEPROM.commit();
+        EEPROM.end();
+        Serial.println("done");
+
+        _pendingChanges = false;
     }
-
-    *crcPtr = ComputeCrc(EEPROM.getDataPtr() + sizeof(uint32_t), EEPROM_SIZE - sizeof(uint32_t));
-    EEPROM.commit();
-    EEPROM.end();
 }
 
 bool SettingsManager::HasValue(Setting key)
@@ -151,14 +208,17 @@ void SettingsManager::SetValue(Setting key, const std::string& value)
     std::vector<uint8_t> val(value.length() + 1);
     memcpy(val.data(), value.c_str(), value.length());
     _settings[key] = val;
+    _pendingChanges = true;
 }
 
 uint32_t SettingsManager::ComputeCrc(void* ptr, uint32_t size)
 {
+    Serial.print("Computing checksum ... ");
     uint32_t result = 0;
     for (uint32_t i = 0; i < size / sizeof(uint32_t); i++)
     {
         result += ((uint32_t*)ptr)[i];
     }
+    Serial.println(result);
     return result;
 }

@@ -8,9 +8,20 @@ AppContext::~AppContext()
 {
 }
 
+void AppContext::Init()
+{
+    _settingsMgr.LoadFromEEPROM();
+    _inputMgr.Init();
+}
+
 RTClock& AppContext::Clock()
 {
     return _clock;
+}
+
+InputManager& AppContext::Input()
+{
+    return _inputMgr;
 }
 
 SettingsManager &AppContext::Settings()

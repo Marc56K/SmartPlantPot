@@ -4,6 +4,8 @@
 #include <string>
 #include "AppContext.h"
 #include <PageNavigator.h>
+#include "TextPage.h"
+
 class Display
 {
 public:
@@ -11,8 +13,9 @@ public:
     ~Display();
 
     PageNavigator& Navigator() { return _navigator; }
+    TextPage& InfoPage() { return *_infoPage.get(); }
 
-    bool Init();
+    bool Init(AppContext& ctx);
 
     void Clear();
     bool Present();
@@ -29,4 +32,5 @@ private:
     Paint _paint;
     Epd _epd;
     PageNavigator _navigator;
+    std::shared_ptr<TextPage> _infoPage;
 };

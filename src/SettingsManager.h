@@ -1,19 +1,18 @@
 #pragma once
+#include "PageNavigator.h"
+#include "PropertyPage.h"
 #include <map>
 #include <vector>
 #include <string>
 
 enum Setting : uint8_t
 {
-    PUMP_DURATION = 0,
-    TARGET_SOIL_MOISTURE,    
+    WIFI_SSID = 0,
+    WIFI_KEY,
+    PUMP_TIME_HH,
+    PUMP_TIME_MM,
+    PUMP_DURATION,
     NUM_SETTINGS
-};
-
-const char SettingName[][32] =
-{
-    "PUMP_DURATION",
-    "TARGET_SOIL_MOISTURE",
 };
 
 class SettingsManager
@@ -33,11 +32,14 @@ public:
     void SetValue(Setting key, float value);
     void SetValue(Setting key, const std::string& value);
 
+    void CreatePropertyPages(PageNavigator& navigator);
+
 private:
     void InitDefaultValues();
     uint32_t ComputeCrc(void* ptr, uint32_t size);
 
 private:
     std::map<Setting, std::vector<uint8_t>> _settings;
+    bool _pendingChanges;
 };
  

@@ -1,25 +1,12 @@
 #include <Arduino.h>
 #include <esp_deep_sleep.h>
-#include <SPI.h>
 #include "InputManager.h"
 #include "AppContext.h"
-#include "HomePage.h"
-#include "PropertyPage.h"
-#include "RTClock.h"
-#include "epd2in9.h"
-#include "epdpaint.h"
-#include "fonts.h"
 #include "Config.h"
 #include "Display.h"
-#include "TextPage.h"
 
 AppContext ctx;
-
 Display display;
-std::shared_ptr<HomePage> homePage = std::make_shared<HomePage>(ctx);
-std::shared_ptr<PropertyPage> settingsPage = std::make_shared<PropertyPage>();
-std::shared_ptr<PropertyPage> wifiPage = std::make_shared<PropertyPage>();
-std::shared_ptr<TextPage> debugPage = std::make_shared<TextPage>();
 
 void print_wakeup_reason()
 {
@@ -66,10 +53,9 @@ void deepSleep(int seconds)
   esp_deep_sleep_start();
 }
 
-int counter = 0;
 int countdown = 0;
 unsigned long lastUpdate = 0;
-bool update(SensorManager &sm)
+bool update()
 {
   auto t = millis();
   int updatesPerSecond = 0;
@@ -82,8 +68,11 @@ bool update(SensorManager &sm)
 
   display.Clear();
 
-  auto btnPressed = InputManager::ButtonPressed();
-  auto encoderDelta = InputManager::GetRotaryEncoderDelta();
+  auto btnPressed = ctx.Input().ButtonPressed();
+  auto encoderDelta = ctx.Input().GetRotaryEncoderDelta();
+
+  if (btnPressed || encoderDelta != 0)
+    countdown = 10000;
 
   if (btnPressed)
     display.Navigator().Click();
@@ -91,11 +80,9 @@ bool update(SensorManager &sm)
   if (encoderDelta != 0)
     display.Navigator().Scroll(encoderDelta);
 
-  //digitalWrite(PUMP_VCC_PIN, counter == 5 ? HIGH : LOW);
-
   auto now = ctx.Clock().Now();
-
-  std::vector<std::string>& lines = debugPage->Lines();
+  auto& sm = ctx.Sensors();
+  std::vector<std::string>& lines = display.InfoPage().Lines();
   lines.clear();
   lines.push_back(std::string("TICKS_PER_SEC: ") + String(updatesPerSecond).c_str());
   lines.push_back(std::string("SLEEP_IN: ") + String(countdown).c_str());
@@ -123,43 +110,16 @@ void setup()
 
   print_wakeup_reason();
 
-  InputManager::Init();
-
   pinMode(PUMP_VCC_PIN, OUTPUT);
   digitalWrite(PUMP_VCC_PIN, LOW);
 
-  //rtclock.SetFromString(String("2010251171600x"));
-
-  delay(10);
-
-  display.Init();
+  ctx.Init();
+  display.Init(ctx);
 
   Serial.println("started");
 
   countdown = 10000;
-  {
-    SensorManager sm;
-
-    settingsPage->Add(std::make_shared<NumberEditor>("Humidity", "%", 0, 1, 0.0, 100.0, 40.0, [&](const double val) { Serial.println(val); }));
-    //settingsPage->Add(std::make_shared<NumberEditor>("Pumping", "s", 1, 0.1, 0.1, 5.0, 0.5));
-    settingsPage->Add(std::make_shared<TimeEditor>("Schedule", 8, 30));
-    settingsPage->Add(std::make_shared<BoolEditor>("Enabled", false));
-    settingsPage->Add(std::make_shared<StringEditor>("Name", "test123foobar"));
-
-    std::vector<std::string> options = { "foo", "bar", "bazz" };
-    settingsPage->Add(std::make_shared<OptionEditor>("Options", options, 0));
-
-    wifiPage->Add(std::make_shared<StringEditor>("SSID", "MR 2.4 GHz"));
-    wifiPage->Add(std::make_shared<StringEditor>("KEY", "abc123"));
-
-    display.Navigator().AddPage("", homePage);
-    display.Navigator().AddPage("Settings", settingsPage);
-    display.Navigator().AddPage("WiFi", wifiPage);
-    display.Navigator().AddPage("Stats", debugPage);
-
-    while (update(sm))
-      ;
-  }
+  while (update());
 
   deepSleep(90);
 }

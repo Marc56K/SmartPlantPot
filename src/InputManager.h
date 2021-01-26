@@ -1,8 +1,9 @@
 #pragma once
 
-namespace InputManager
+class InputManager
 {
+public:
     void Init();
     bool ButtonPressed();
     int GetRotaryEncoderDelta();
-}
+};
