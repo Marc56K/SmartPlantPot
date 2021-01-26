@@ -1,9 +1,6 @@
 #include "Display.h"
 #include <images.h>
 
-extern sIMAGE IMG_root;
-extern sIMAGE IMG_soil;
-extern sIMAGE IMG_wet_soil;
 extern sIMAGE IMG_tank_0;
 extern sIMAGE IMG_tank_25;
 extern sIMAGE IMG_tank_50;
@@ -129,45 +126,14 @@ void Display::RenderBusyAnimation(const uint32_t x, const uint32_t y)
     }
 }
 
-void Display::RenderSoilHumidityIndicator(const uint32_t top, const uint32_t bottom, const float sensorValue)
+void Display::Render(AppContext& ctx)
 {
-    const uint32_t totalRange = bottom - top;
-    const uint32_t height = round(totalRange * max(0.0f, min(1.0f, sensorValue)));
-    const uint32_t yStart = top + totalRange - height;
-    //const uint32_t yEnd = yStart + height;
+    _navigator.SetWdith(EPD_WIDTH);
+    _navigator.SetHeight(267);
+    _navigator.Render(_paint, 0, 0);
 
-    _paint.DrawImage(0, yStart - IMG_soil.Height, &IMG_soil);
-    _paint.DrawImage(0, yStart, &IMG_wet_soil);
-}
-
-void Display::RenderMainScreen(SensorManager& sm)
-{
-    RenderSoilHumidityIndicator(0, 267, sm.GetSoilHumidity());
-    _paint.DrawImage(0, 0, &IMG_root);
-
-    _paint.DrawFilledRectangle(0, 267, EPD_WIDTH, EPD_HEIGHT, 1);
+    _paint.DrawFilledRectangle(0, 267, EPD_WIDTH, EPD_HEIGHT, WHITE);
     _paint.DrawHorizontalLine(0, 267, EPD_WIDTH, 0);
-
-    RenderBatteryIndicator(4, 272, sm.GetBatVoltage());
-    RenderTankIndicator(100, 272, sm.GetWaterTankLevel());
-}
-
-void Display::RenderDebugMessages(std::vector<String>& messages)
-{
-    auto& fnt = Font12;
-    for (size_t i = 0; i < messages.size(); i++)
-    {
-        String& msg = messages[i];
-        int y = 2 + i * (fnt.Height + 2);
-
-        _paint.DrawFilledRectangle(0, y, msg.length() * fnt.Width + 2, y + fnt.Height, 0);
-        _paint.DrawUtf8StringAt(2, y + 1, msg.c_str(), &fnt, 1);
-    }
-}
-
-void Display::RenderPages(PageNavigator& navigator)
-{
-    navigator.SetWdith(EPD_WIDTH);
-    navigator.SetHeight(267);
-    navigator.Render(_paint, 0, 0);
+    RenderBatteryIndicator(4, 272, ctx.Sensors().GetBatVoltage());
+    RenderTankIndicator(100, 272, ctx.Sensors().GetWaterTankLevel());
 }

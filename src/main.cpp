@@ -1,23 +1,25 @@
 #include <Arduino.h>
 #include <esp_deep_sleep.h>
 #include <SPI.h>
+#include "InputManager.h"
+#include "AppContext.h"
+#include "HomePage.h"
+#include "PropertyPage.h"
 #include "RTClock.h"
 #include "epd2in9.h"
 #include "epdpaint.h"
 #include "fonts.h"
 #include "Config.h"
-#include "SensorManager.h"
-#include "InputManager.h"
 #include "Display.h"
 #include "TextPage.h"
 
-RTClock rtclock;
+AppContext ctx;
 
 Display display;
+std::shared_ptr<HomePage> homePage = std::make_shared<HomePage>(ctx);
 std::shared_ptr<PropertyPage> settingsPage = std::make_shared<PropertyPage>();
 std::shared_ptr<PropertyPage> wifiPage = std::make_shared<PropertyPage>();
 std::shared_ptr<TextPage> debugPage = std::make_shared<TextPage>();
-PageNavigator navigator;
 
 void print_wakeup_reason()
 {
@@ -55,7 +57,6 @@ void deepSleep(int seconds)
   //esp_sleep_enable_ext1_wakeup(0x8000, ESP_EXT1_WAKEUP_ALL_LOW); // clock interrupt at pin[15]
   //esp_deep_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * seconds);
 
-  rtclock.WakeInOneMinute();
   if (Serial)
   {
     Serial.println(String(F("Going to sleep: ")) + seconds);
@@ -85,16 +86,14 @@ bool update(SensorManager &sm)
   auto encoderDelta = InputManager::GetRotaryEncoderDelta();
 
   if (btnPressed)
-    navigator.Click();
+    display.Navigator().Click();
 
   if (encoderDelta != 0)
-    navigator.Scroll(encoderDelta);
+    display.Navigator().Scroll(encoderDelta);
 
   //digitalWrite(PUMP_VCC_PIN, counter == 5 ? HIGH : LOW);
 
-  auto now = rtclock.Now();
-
-  display.RenderMainScreen(sm);
+  auto now = ctx.Clock().Now();
 
   std::vector<std::string>& lines = debugPage->Lines();
   lines.clear();
@@ -109,12 +108,7 @@ bool update(SensorManager &sm)
   lines.push_back(std::string("TANK: ") + String(sm.GetWaterTankLevel()).c_str());
   lines.push_back(std::string("TEMP: ") + String(sm.GetTemperature()).c_str());
 
-  for (size_t i = 0; i < lines.size(); i++)
-  {
-    //Serial.println(lines[i]);
-  }
-
-  display.RenderPages(navigator);
+  display.Render(ctx);
 
   display.Present();
 
@@ -158,10 +152,10 @@ void setup()
     wifiPage->Add(std::make_shared<StringEditor>("SSID", "MR 2.4 GHz"));
     wifiPage->Add(std::make_shared<StringEditor>("KEY", "abc123"));
 
-    navigator.AddPage("", nullptr);
-    navigator.AddPage("Settings", settingsPage);
-    navigator.AddPage("WiFi", wifiPage);
-    navigator.AddPage("Stats", debugPage);
+    display.Navigator().AddPage("", homePage);
+    display.Navigator().AddPage("Settings", settingsPage);
+    display.Navigator().AddPage("WiFi", wifiPage);
+    display.Navigator().AddPage("Stats", debugPage);
 
     while (update(sm))
       ;
