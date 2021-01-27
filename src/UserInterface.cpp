@@ -1,5 +1,6 @@
-#include "Display.h"
+#include "UserInterface.h"
 #include "HomePage.h"
+#include "InfoPage.h"
 #include <images.h>
 
 extern sIMAGE IMG_tank_0;
@@ -8,19 +9,22 @@ extern sIMAGE IMG_tank_50;
 extern sIMAGE IMG_tank_75;
 extern sIMAGE IMG_tank_100;
 
-Display::Display()
-    : _paint(_buffer, EPD_WIDTH, EPD_HEIGHT), _infoPage(std::make_shared<TextPage>())
+UserInterface::UserInterface(AppContext& ctx) :
+    _ctx(ctx), 
+    _paint(_buffer, EPD_WIDTH, EPD_HEIGHT)
 {
 
 }
 
-Display::~Display()
+UserInterface::~UserInterface()
 {
     
 }
 
-bool Display::Init(AppContext& ctx)
+bool UserInterface::Init()
 {
+    _inputMgr.Init();
+
     if (_epd.Init(lut_full_update) != 0)
     {
         Serial.print("e-Paper init failed");
@@ -38,19 +42,59 @@ bool Display::Init(AppContext& ctx)
         return false;
     }
 
-    _navigator.AddPage("", std::make_shared<HomePage>(ctx));  
-    ctx.Settings().CreatePropertyPages(_navigator);
-    _navigator.AddPage("Info", _infoPage);
+    _navigator.AddPage("", std::make_shared<HomePage>(_ctx));  
+    _ctx.GetSettingsMgr().CreatePropertyPages(_navigator);
+    _navigator.AddPage("Info", std::make_shared<InfoPage>(_ctx));
 
     return true;
 }
 
-void Display::Clear()
+bool UserInterface::HandleInput()
 {
-    _paint.Clear(1);
+    bool result = false;
+    auto btnPressed = _inputMgr.ButtonPressed();
+    auto encoderDelta = _inputMgr.GetRotaryEncoderDelta();
+
+    if (btnPressed)
+    {
+        _navigator.Click();
+        result = true;
+    }
+
+    if (encoderDelta != 0)
+    {
+        _navigator.Scroll(encoderDelta);
+        result = true;
+    }
+    
+    return result;
 }
 
-bool Display::Present()
+void UserInterface::UpdateDisplay()
+{
+    Clear();
+    Render();
+    Present();
+}
+
+void UserInterface::Clear()
+{
+    _paint.Clear(WHITE);
+}
+
+void UserInterface::Render()
+{
+    _navigator.SetWdith(EPD_WIDTH);
+    _navigator.SetHeight(267);
+    _navigator.Render(_paint, 0, 0);
+
+    _paint.DrawFilledRectangle(0, 267, EPD_WIDTH, EPD_HEIGHT, WHITE);
+    _paint.DrawHorizontalLine(0, 267, EPD_WIDTH, 0);
+    RenderBatteryIndicator(4, 272, _ctx.GetSensorMgr().GetBatVoltage());
+    RenderTankIndicator(100, 272, _ctx.GetSensorMgr().GetWaterTankLevel());
+}
+
+bool UserInterface::Present()
 {
     if (_epd.IsIdle())
     {
@@ -61,7 +105,7 @@ bool Display::Present()
     return false;
 }
 
-void Display::RenderTankIndicator(const uint32_t x, const uint32_t y, const float v)
+void UserInterface::RenderTankIndicator(const uint32_t x, const uint32_t y, const float v)
 {
     sIMAGE* img = &IMG_tank_100;
     if (v < 0.2f)
@@ -76,7 +120,7 @@ void Display::RenderTankIndicator(const uint32_t x, const uint32_t y, const floa
     _paint.DrawImage(x, y, img);
 }
 
-void Display::RenderBatteryIndicator(const uint32_t x, const uint32_t y, const float v)
+void UserInterface::RenderBatteryIndicator(const uint32_t x, const uint32_t y, const float v)
 {
     int level = -240.0673368f * v * v * v + 2658.611075f * v * v - 9650.778487f * v + 11521.76802f;
     level = max(0, min(level, 100));
@@ -94,7 +138,7 @@ void Display::RenderBatteryIndicator(const uint32_t x, const uint32_t y, const f
     _paint.DrawImage(x, y, img);
 }
 
-void Display::RenderOnlineIndicator(const uint32_t x, const uint32_t y, const bool online)
+void UserInterface::RenderOnlineIndicator(const uint32_t x, const uint32_t y, const bool online)
 {
     if (online)
     {
@@ -106,7 +150,7 @@ void Display::RenderOnlineIndicator(const uint32_t x, const uint32_t y, const bo
     }    
 }
 
-void Display::RenderBusyAnimation(const uint32_t x, const uint32_t y)
+void UserInterface::RenderBusyAnimation(const uint32_t x, const uint32_t y)
 {
     int i = ((millis() / 750) % 6);
     switch(i)
@@ -129,16 +173,4 @@ void Display::RenderBusyAnimation(const uint32_t x, const uint32_t y)
         default:
             _paint.DrawImage(x, y, &IMG_spinner_5);
     }
-}
-
-void Display::Render(AppContext& ctx)
-{
-    _navigator.SetWdith(EPD_WIDTH);
-    _navigator.SetHeight(267);
-    _navigator.Render(_paint, 0, 0);
-
-    _paint.DrawFilledRectangle(0, 267, EPD_WIDTH, EPD_HEIGHT, WHITE);
-    _paint.DrawHorizontalLine(0, 267, EPD_WIDTH, 0);
-    RenderBatteryIndicator(4, 272, ctx.Sensors().GetBatVoltage());
-    RenderTankIndicator(100, 272, ctx.Sensors().GetWaterTankLevel());
 }

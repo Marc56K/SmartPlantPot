@@ -1,127 +1,89 @@
 #include <Arduino.h>
 #include <esp_deep_sleep.h>
-#include "InputManager.h"
 #include "AppContext.h"
-#include "Config.h"
-#include "Display.h"
 
 AppContext ctx;
-Display display;
 
 void print_wakeup_reason()
 {
-  esp_sleep_wakeup_cause_t wakeup_reason;
+    esp_sleep_wakeup_cause_t wakeup_reason;
 
-  wakeup_reason = esp_sleep_get_wakeup_cause();
+    wakeup_reason = esp_sleep_get_wakeup_cause();
 
-  switch (wakeup_reason)
-  {
-  case ESP_SLEEP_WAKEUP_EXT0:
-    Serial.println("Wakeup caused by external signal using RTC_IO");
-    break;
-  case ESP_SLEEP_WAKEUP_EXT1:
-    Serial.println("Wakeup caused by external signal using RTC_CNTL");
-    break;
-  case ESP_SLEEP_WAKEUP_TIMER:
-    Serial.println("Wakeup caused by timer");
-    break;
-  case ESP_SLEEP_WAKEUP_TOUCHPAD:
-    Serial.println("Wakeup caused by touchpad");
-    break;
-  case ESP_SLEEP_WAKEUP_ULP:
-    Serial.println("Wakeup caused by ULP program");
-    break;
-  default:
-    Serial.printf("Wakeup was not caused by deep sleep: %d\n", wakeup_reason);
-    break;
-  }
+    switch (wakeup_reason)
+    {
+    case ESP_SLEEP_WAKEUP_EXT0:
+        Serial.println("Wakeup caused by external signal using RTC_IO");
+        break;
+    case ESP_SLEEP_WAKEUP_EXT1:
+        Serial.println("Wakeup caused by external signal using RTC_CNTL");
+        break;
+    case ESP_SLEEP_WAKEUP_TIMER:
+        Serial.println("Wakeup caused by timer");
+        break;
+    case ESP_SLEEP_WAKEUP_TOUCHPAD:
+        Serial.println("Wakeup caused by touchpad");
+        break;
+    case ESP_SLEEP_WAKEUP_ULP:
+        Serial.println("Wakeup caused by ULP program");
+        break;
+    default:
+        Serial.printf("Wakeup was not caused by deep sleep: %d\n", wakeup_reason);
+        break;
+    }
 }
 
 void deepSleep(int seconds)
 {
 #define uS_TO_S_FACTOR 1000000ULL
-  esp_sleep_enable_ext0_wakeup(ROTENC_SW_PIN, 0);
-  //esp_sleep_enable_ext1_wakeup(0x8000, ESP_EXT1_WAKEUP_ALL_LOW); // clock interrupt at pin[15]
-  //esp_deep_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * seconds);
+    esp_sleep_enable_ext0_wakeup(ROTENC_SW_PIN, 0);
+    //esp_sleep_enable_ext1_wakeup(0x8000, ESP_EXT1_WAKEUP_ALL_LOW); // clock interrupt at pin[15]
+    //esp_deep_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * seconds);
 
-  if (Serial)
-  {
-    Serial.println(String(F("Going to sleep: ")) + seconds);
-    Serial.flush();
-  }
+    if (Serial)
+    {
+        Serial.println(String(F("Going to sleep: ")) + seconds);
+        Serial.flush();
+    }
 
-  esp_deep_sleep_start();
+    esp_deep_sleep_start();
 }
 
 int countdown = 0;
-unsigned long lastUpdate = 0;
 bool update()
 {
-  auto t = millis();
-  int updatesPerSecond = 0;
-  if (lastUpdate != 0)
-  {
-    float deltaT = 0.001f * (t - lastUpdate);
-    updatesPerSecond = 1.0 / deltaT;
-  }
-  lastUpdate = t;
+    auto &ui = ctx.GetUserInterface();
 
-  display.Clear();
+    if (ui.HandleInput())
+    {
+        countdown = 10000;
+    }
 
-  auto btnPressed = ctx.Input().ButtonPressed();
-  auto encoderDelta = ctx.Input().GetRotaryEncoderDelta();
+    ui.UpdateDisplay();
 
-  if (btnPressed || encoderDelta != 0)
-    countdown = 10000;
-
-  if (btnPressed)
-    display.Navigator().Click();
-
-  if (encoderDelta != 0)
-    display.Navigator().Scroll(encoderDelta);
-
-  auto now = ctx.Clock().Now();
-  auto& sm = ctx.Sensors();
-  std::vector<std::string>& lines = display.InfoPage().Lines();
-  lines.clear();
-  lines.push_back(std::string("TICKS_PER_SEC: ") + String(updatesPerSecond).c_str());
-  lines.push_back(std::string("SLEEP_IN: ") + String(countdown).c_str());
-  lines.push_back(std::string("BAT: ") + String(sm.GetBatVoltage()).c_str() + "V");
-  lines.push_back(std::string("DT: ") + now.ToString(true, false).c_str());
-  lines.push_back(std::string("TIME: ") + now.ToString(false, true).c_str());
-  lines.push_back(std::string("BUTTON: ") + String(btnPressed).c_str());
-  lines.push_back(std::string("ROT_ENC: ") + String(encoderDelta).c_str());
-  lines.push_back(std::string("SOIL: ") + String(sm.GetSoilHumidity()).c_str());
-  lines.push_back(std::string("TANK: ") + String(sm.GetWaterTankLevel()).c_str());
-  lines.push_back(std::string("TEMP: ") + String(sm.GetTemperature()).c_str());
-
-  display.Render(ctx);
-
-  display.Present();
-
-  return --countdown >= 0;
+    return --countdown >= 0;
 }
 
 void setup()
 {
-  // put your setup code here, to run once:
-  Serial.begin(9600);
-  Serial.println("starting...");
+    // put your setup code here, to run once:
+    Serial.begin(9600);
+    Serial.println("starting...");
 
-  print_wakeup_reason();
+    print_wakeup_reason();
 
-  pinMode(PUMP_VCC_PIN, OUTPUT);
-  digitalWrite(PUMP_VCC_PIN, LOW);
+    pinMode(PUMP_VCC_PIN, OUTPUT);
+    digitalWrite(PUMP_VCC_PIN, LOW);
 
-  ctx.Init();
-  display.Init(ctx);
+    ctx.Init();
 
-  Serial.println("started");
+    Serial.println("started");
 
-  countdown = 10000;
-  while (update());
+    countdown = 10000;
+    while (update())
+        ;
 
-  deepSleep(90);
+    deepSleep(90);
 }
 
 void loop()

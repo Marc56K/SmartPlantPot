@@ -2,35 +2,35 @@
 #include <epd2in9.h>
 #include <epdpaint.h>
 #include <string>
-#include "AppContext.h"
+#include "InputManager.h"
 #include <PageNavigator.h>
-#include "TextPage.h"
 
-class Display
+class AppContext;
+class UserInterface
 {
 public:
-    Display();
-    ~Display();
+    UserInterface(AppContext& ctx);
+    ~UserInterface();
 
-    PageNavigator& Navigator() { return _navigator; }
-    TextPage& InfoPage() { return *_infoPage.get(); }
+    bool Init();
+    bool HandleInput();
+    void UpdateDisplay();
 
-    bool Init(AppContext& ctx);
-
+private:
     void Clear();
+    void Render();
     bool Present();
 
     void RenderTankIndicator(const uint32_t x, const uint32_t y, const float sensorValue);
     void RenderBatteryIndicator(const uint32_t x, const uint32_t y, const float voltage);
     void RenderOnlineIndicator(const uint32_t x, const uint32_t y, const bool online);
-    void RenderBusyAnimation(const uint32_t x, const uint32_t y);
-
-    void Render(AppContext& ctx);
+    void RenderBusyAnimation(const uint32_t x, const uint32_t y);    
 
 private:
+    AppContext& _ctx;
+    InputManager _inputMgr;
     unsigned char _buffer[EPD_WIDTH * EPD_HEIGHT];
     Paint _paint;
     Epd _epd;
     PageNavigator _navigator;
-    std::shared_ptr<TextPage> _infoPage;
 };

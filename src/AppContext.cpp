@@ -1,6 +1,7 @@
 #include "AppContext.h"
 
-AppContext::AppContext()
+AppContext::AppContext() : 
+    _userInterface(*this)
 {
 }
 
@@ -11,25 +12,25 @@ AppContext::~AppContext()
 void AppContext::Init()
 {
     _settingsMgr.LoadFromEEPROM();
-    _inputMgr.Init();
+    _userInterface.Init();
 }
 
-RTClock& AppContext::Clock()
+UserInterface& AppContext::GetUserInterface()
+{
+    return _userInterface;
+}
+
+RTClock& AppContext::GetClock()
 {
     return _clock;
 }
 
-InputManager& AppContext::Input()
-{
-    return _inputMgr;
-}
-
-SettingsManager &AppContext::Settings()
+SettingsManager &AppContext::GetSettingsMgr()
 {
     return _settingsMgr;
 }
 
-SensorManager &AppContext::Sensors()
+SensorManager &AppContext::GetSensorMgr()
 {
     return _sensorMgr;
 }
