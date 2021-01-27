@@ -130,7 +130,6 @@ void SettingsManager::SaveToEEPROM()
 {
     if (_pendingChanges)
     {
-        Serial.println("Writing to EEPROM ...");
         EEPROM.begin(EEPROM_SIZE);
         uint8_t numEntries = (uint8_t)_settings.size();
         uint8_t* ptr = EEPROM.getDataPtr();
@@ -155,7 +154,6 @@ void SettingsManager::SaveToEEPROM()
         *crcPtr = ComputeCrc(EEPROM.getDataPtr() + sizeof(uint32_t), EEPROM_SIZE - sizeof(uint32_t));
         EEPROM.commit();
         EEPROM.end();
-        Serial.println("done");
 
         _pendingChanges = false;
     }
@@ -213,12 +211,10 @@ void SettingsManager::SetValue(Setting key, const std::string& value)
 
 uint32_t SettingsManager::ComputeCrc(void* ptr, uint32_t size)
 {
-    Serial.print("Computing checksum ... ");
     uint32_t result = 0;
     for (uint32_t i = 0; i < size / sizeof(uint32_t); i++)
     {
         result += ((uint32_t*)ptr)[i];
     }
-    Serial.println(result);
     return result;
 }

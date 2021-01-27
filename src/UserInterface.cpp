@@ -11,9 +11,9 @@ extern sIMAGE IMG_tank_100;
 
 UserInterface::UserInterface(AppContext& ctx) :
     _ctx(ctx), 
-    _paint(_buffer, EPD_WIDTH, EPD_HEIGHT)
+    _paint(_frameBuffer.data(), EPD_WIDTH, EPD_HEIGHT),
+    _firstFrame(true)
 {
-
 }
 
 UserInterface::~UserInterface()
@@ -25,18 +25,9 @@ bool UserInterface::Init()
 {
     _inputMgr.Init();
 
-    if (_epd.Init(lut_full_update) != 0)
-    {
-        Serial.print("e-Paper init failed");
-        return false;
-    }
+    _firstFrame = true;
 
-    _epd.ClearFrameMemory(0xFF);   // bit set = white, bit reset = black
-    _epd.DisplayFrame();
-    _epd.ClearFrameMemory(0xFF);   // bit set = white, bit reset = black
-    _epd.DisplayFrame();
-
-    if (_epd.Init(lut_partial_update) != 0)
+    if (_display.Init(lut_partial_update) != 0)
     {
         Serial.println("e-Paper init failed");
         return false;
@@ -51,12 +42,7 @@ bool UserInterface::Init()
 
 void UserInterface::HandleInput()
 {
-    if (_ctx.GetEspSleepMgr().DeepSleepRequested())
-    {
-        // switch to home page
-        _navigator.SetCurrentPage(0);
-    }
-    else
+    if (!_ctx.GetEspSleepMgr().DeepSleepRequested())
     {
         auto btnPressed = _inputMgr.ButtonPressed();
         auto encoderDelta = _inputMgr.GetRotaryEncoderDelta();
@@ -81,22 +67,39 @@ void UserInterface::HandleInput()
 void UserInterface::Update()
 {
     HandleInput();
-    UpdateDisplay();    
+    RenderFrame();
+    RefreshDisplay();
 }
 
-void UserInterface::UpdateDisplay()
+void UserInterface::RenderFrame()
 {
-    _paint.Clear(WHITE);
-    
     RenderPages();
     RenderStatusBar();
+}
 
-    _epd.SetFrameMemory(_paint.GetImage(), 0, 0, _paint.GetWidth(), _paint.GetHeight());
-    _epd.DisplayFrame(true);
+void UserInterface::RefreshDisplay()
+{
+    if (_firstFrame)
+    {
+        _firstFrame = false;
+        for (auto& p : _frameBuffer)
+        {
+            p = ~p;
+        }
+    }
+
+    _display.SetFrameMemory(_paint.GetImage(), 0, 0, _paint.GetWidth(), _paint.GetHeight());
+    _display.DisplayFrame(true);
 }
 
 void UserInterface::RenderPages()
 {
+    if (_ctx.GetEspSleepMgr().DeepSleepRequested())
+    {
+        // switch to home page
+        _navigator.SetCurrentPage(0);
+    }
+
     _navigator.SetWdith(EPD_WIDTH);
     _navigator.SetHeight(267);
     _navigator.Render(_paint, 0, 0);

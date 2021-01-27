@@ -2,6 +2,7 @@
 #include <epd2in9.h>
 #include <epdpaint.h>
 #include <string>
+#include <array>
 #include "InputManager.h"
 #include <PageNavigator.h>
 
@@ -17,7 +18,8 @@ public:
 
 private:
     void HandleInput();
-    void UpdateDisplay();
+    void RenderFrame();
+    void RefreshDisplay();
 
     void RenderPages();
     void RenderStatusBar();
@@ -27,10 +29,11 @@ private:
     void RenderBusyAnimation(const uint32_t x, const uint32_t y);    
 
 private:
-    AppContext& _ctx;
-    InputManager _inputMgr;
-    unsigned char _buffer[EPD_WIDTH * EPD_HEIGHT];
+    AppContext& _ctx;    
+    std::array<unsigned char, (EPD_WIDTH * EPD_HEIGHT)> _frameBuffer;
     Paint _paint;
-    Epd _epd;
+    Epd _display;
+    bool _firstFrame;
+    InputManager _inputMgr;
     PageNavigator _navigator;
 };
