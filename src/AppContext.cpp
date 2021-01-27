@@ -1,7 +1,8 @@
 #include "AppContext.h"
 
 AppContext::AppContext() : 
-    _userInterface(*this), _deepSleepMgr(*this)
+    _userInterface(*this),
+    _espSleepMgr(*this)
 {
 }
 
@@ -11,9 +12,15 @@ AppContext::~AppContext()
 
 void AppContext::Init()
 {
-    _deepSleepMgr.PrintWakeupCause();
+    _espSleepMgr.PrintWakeupCause();
     _settingsMgr.LoadFromEEPROM();
     _userInterface.Init();
+}
+
+void AppContext::Update()
+{
+    _espSleepMgr.Update();
+    _userInterface.Update();
 }
 
 UserInterface& AppContext::GetUserInterface()
@@ -36,7 +43,7 @@ SensorManager& AppContext::GetSensorMgr()
     return _sensorMgr;
 }
 
-DeepSleepManager& AppContext::GetDeepSleepMgr()
+EspSleepManager& AppContext::GetEspSleepMgr()
 {
-    return _deepSleepMgr;
+    return _espSleepMgr;
 }

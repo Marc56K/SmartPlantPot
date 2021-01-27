@@ -13,14 +13,14 @@ public:
     ~UserInterface();
 
     bool Init();
-    bool HandleInput();
-    void UpdateDisplay();
+    void Update();
 
 private:
-    void Clear();
-    void Render();
-    bool Present();
+    void HandleInput();
+    void UpdateDisplay();
 
+    void RenderPages();
+    void RenderStatusBar();
     void RenderTankIndicator(const uint32_t x, const uint32_t y, const float sensorValue);
     void RenderBatteryIndicator(const uint32_t x, const uint32_t y, const float voltage);
     void RenderOnlineIndicator(const uint32_t x, const uint32_t y, const bool online);

@@ -49,65 +49,65 @@ bool UserInterface::Init()
     return true;
 }
 
-bool UserInterface::HandleInput()
+void UserInterface::HandleInput()
 {
-    bool result = false;
-    auto btnPressed = _inputMgr.ButtonPressed();
-    auto encoderDelta = _inputMgr.GetRotaryEncoderDelta();
-
-    if (btnPressed)
+    if (_ctx.GetEspSleepMgr().DeepSleepRequested())
     {
-        _navigator.Click();
-        result = true;
+        // switch to home page
+        _navigator.SetCurrentPage(0);
     }
-
-    if (encoderDelta != 0)
+    else
     {
-        _navigator.Scroll(encoderDelta);
-        result = true;
-    }
+        auto btnPressed = _inputMgr.ButtonPressed();
+        auto encoderDelta = _inputMgr.GetRotaryEncoderDelta();
 
-    if (result)
-    {
-        _ctx.GetDeepSleepMgr().ResetWakeDuration();
+        if (btnPressed)
+        {
+            _navigator.Click();
+        }
+
+        if (encoderDelta != 0)
+        {
+            _navigator.Scroll(encoderDelta);
+        }
+
+        if (btnPressed || encoderDelta != 0)
+        {
+            _ctx.GetEspSleepMgr().ResetWakeTimer();
+        }
     }
-    
-    return result;
+}
+
+void UserInterface::Update()
+{
+    HandleInput();
+    UpdateDisplay();    
 }
 
 void UserInterface::UpdateDisplay()
 {
-    Clear();
-    Render();
-    Present();
-}
-
-void UserInterface::Clear()
-{
     _paint.Clear(WHITE);
+    
+    RenderPages();
+    RenderStatusBar();
+
+    _epd.SetFrameMemory(_paint.GetImage(), 0, 0, _paint.GetWidth(), _paint.GetHeight());
+    _epd.DisplayFrame(true);
 }
 
-void UserInterface::Render()
+void UserInterface::RenderPages()
 {
     _navigator.SetWdith(EPD_WIDTH);
     _navigator.SetHeight(267);
     _navigator.Render(_paint, 0, 0);
+}
 
+void UserInterface::RenderStatusBar()
+{
     _paint.DrawFilledRectangle(0, 267, EPD_WIDTH, EPD_HEIGHT, WHITE);
     _paint.DrawHorizontalLine(0, 267, EPD_WIDTH, 0);
     RenderBatteryIndicator(4, 272, _ctx.GetSensorMgr().GetBatVoltage());
     RenderTankIndicator(100, 272, _ctx.GetSensorMgr().GetWaterTankLevel());
-}
-
-bool UserInterface::Present()
-{
-    if (_epd.IsIdle())
-    {
-        _epd.SetFrameMemory(_paint.GetImage(), 0, 0, _paint.GetWidth(), _paint.GetHeight());
-        _epd.DisplayFrame(false);
-        return true;
-    }
-    return false;
 }
 
 void UserInterface::RenderTankIndicator(const uint32_t x, const uint32_t y, const float v)

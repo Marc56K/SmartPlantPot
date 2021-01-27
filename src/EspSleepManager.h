@@ -1,21 +1,24 @@
 #pragma once
-#include <esp_deep_sleep.h>
+#include <esp_sleep.h>
 
 class AppContext;
 
-class DeepSleepManager
+class EspSleepManager
 {
 public:
-    DeepSleepManager(AppContext& ctx);
-    ~DeepSleepManager();
+    EspSleepManager(AppContext& ctx);
+    ~EspSleepManager();
 
     void PrintWakeupCause();
 
     void SetClockInterrupt(const bool enabled);
     void SetSleepDuration(const int seconds);
 
-    void ResetWakeDuration();
-    int GetRemainingWakeDuration();
+    void ResetWakeTimer();
+    int GetRemainingWakeTime();
+
+    void RequestDeepSleep();
+    bool DeepSleepRequested();
 
     void Update();
 
@@ -24,5 +27,6 @@ private:
     unsigned long _wakeTime;
     bool _clockInterruptEnabled;
     int _sleepDuration;
+    bool _deepSleepRequested;
     esp_sleep_wakeup_cause_t _wakeupCause;
 };
