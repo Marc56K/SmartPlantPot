@@ -1,7 +1,7 @@
 #include "AppContext.h"
 
 AppContext::AppContext() : 
-    _userInterface(*this)
+    _userInterface(*this), _deepSleepMgr(*this)
 {
 }
 
@@ -11,6 +11,7 @@ AppContext::~AppContext()
 
 void AppContext::Init()
 {
+    _deepSleepMgr.PrintWakeupCause();
     _settingsMgr.LoadFromEEPROM();
     _userInterface.Init();
 }
@@ -25,12 +26,17 @@ RTClock& AppContext::GetClock()
     return _clock;
 }
 
-SettingsManager &AppContext::GetSettingsMgr()
+SettingsManager& AppContext::GetSettingsMgr()
 {
     return _settingsMgr;
 }
 
-SensorManager &AppContext::GetSensorMgr()
+SensorManager& AppContext::GetSensorMgr()
 {
     return _sensorMgr;
+}
+
+DeepSleepManager& AppContext::GetDeepSleepMgr()
+{
+    return _deepSleepMgr;
 }

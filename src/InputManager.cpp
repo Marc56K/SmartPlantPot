@@ -26,7 +26,7 @@ void EncoderISR()
     }
 }
 
-unsigned long buttonPressedTime = 0;
+volatile unsigned long buttonPressedTime = 0;
 volatile bool buttonPressed = false;
 void ButtonISR()
 {
@@ -59,4 +59,9 @@ int InputManager::GetRotaryEncoderDelta()
     auto result = encoderDelta;
     encoderDelta = 0;
     return result;
+}
+
+unsigned long InputManager::GetLastInputTime()
+{
+    return std::max(lastEncoderTime, buttonPressedTime);
 }

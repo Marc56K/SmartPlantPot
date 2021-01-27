@@ -66,6 +66,11 @@ bool UserInterface::HandleInput()
         _navigator.Scroll(encoderDelta);
         result = true;
     }
+
+    if (result)
+    {
+        _ctx.GetDeepSleepMgr().ResetWakeDuration();
+    }
     
     return result;
 }

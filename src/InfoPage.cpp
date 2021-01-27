@@ -15,6 +15,7 @@ void InfoPage::Render(Paint& paint, const int x, const int y)
     auto& sm = _ctx.GetSensorMgr();
     auto& lines = Lines();
     lines.clear();
+    lines.push_back(std::string("ETA: ") + String(_ctx.GetDeepSleepMgr().GetRemainingWakeDuration()).c_str() + "s");
     lines.push_back(std::string("BAT: ") + String(sm.GetBatVoltage()).c_str() + "V");
     lines.push_back(std::string("DT: ") + now.ToString(true, false).c_str());
     lines.push_back(std::string("TIME: ") + now.ToString(false, true).c_str());
