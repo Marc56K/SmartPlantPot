@@ -58,54 +58,6 @@ void SettingsManager::LoadFromEEPROM()
     InitDefaultValues();
 }
 
-void SettingsManager::CreatePropertyPages(PageNavigator& navigator)
-{
-    LoadFromEEPROM();
-
-    auto onSelectedChanged = [&]() { SaveToEEPROM(); };
-
-    auto p = std::make_shared<PropertyPage>(onSelectedChanged);    
-    p->Add(std::make_shared<StringEditor>(
-        "SSID", 
-        GetStringValue(WIFI_SSID), 
-        [&](const std::string& val) 
-        { 
-            SetValue(WIFI_SSID, val);
-        }));
-
-    p->Add(std::make_shared<StringEditor>(
-        "KEY",
-        GetStringValue(WIFI_KEY),
-        [&](const std::string& val)
-        {
-            SetValue(WIFI_KEY, val);
-        }));
-
-    navigator.AddPage("WiFi", p);
-
-    p = std::make_shared<PropertyPage>(onSelectedChanged);
-    p->Add(std::make_shared<TimeEditor>(
-        "Time", 
-        GetIntValue(PUMP_TIME_HH),
-        GetIntValue(PUMP_TIME_MM),
-        [&](const uint8_t hh, const uint8_t mm)
-        {
-            SetValue(PUMP_TIME_HH, hh);
-            SetValue(PUMP_TIME_MM, mm);
-        }));
-
-    p->Add(std::make_shared<NumberEditor>(
-        "Duration",
-        "s", 1, 0.1, 0.0, 5,
-        GetFloatValue(PUMP_DURATION),
-        [&](const double val)
-        {
-            SetValue(PUMP_DURATION, val);
-        }));
-
-    navigator.AddPage("Pumping", p);
-}
-
 void SettingsManager::InitDefaultValues()
 {
     if (!HasValue(PUMP_DURATION))

@@ -32,8 +32,6 @@ public:
     void SetValue(Setting key, float value);
     void SetValue(Setting key, const std::string& value);
 
-    void CreatePropertyPages(PageNavigator& navigator);
-
 private:
     void InitDefaultValues();
     uint32_t ComputeCrc(void* ptr, uint32_t size);
