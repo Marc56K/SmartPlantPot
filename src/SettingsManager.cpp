@@ -60,6 +60,16 @@ void SettingsManager::LoadFromEEPROM()
 
 void SettingsManager::InitDefaultValues()
 {
+    if (!HasValue(TIME_SERVER))
+    {
+        SetValue(TIME_SERVER, "pool.ntp.org");
+    }
+
+    if (!HasValue(TIME_OFFSET))
+    {
+        SetValue(TIME_OFFSET, "0");
+    }
+
     if (!HasValue(PUMP_DURATION))
     {
         SetValue(PUMP_DURATION, "0.5");

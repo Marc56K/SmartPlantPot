@@ -2,6 +2,7 @@
 
 AppContext::AppContext() : 
     _userInterface(*this),
+    _clock(*this),
     _powerMgr(*this),
     _networkMgr(*this)
 {
@@ -13,9 +14,10 @@ AppContext::~AppContext()
 
 void AppContext::Init()
 {
-    _powerMgr.PrintWakeupCause();
     _settingsMgr.LoadFromEEPROM();
+    _powerMgr.PrintWakeupCause();
     _userInterface.Init();
+    _clock.Init();
 }
 
 void AppContext::Update()

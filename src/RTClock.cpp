@@ -1,5 +1,8 @@
 #include "RTClock.h"
+#include "AppContext.h"
 #include <DS3232RTC.h>
+
+WiFiUDP ntpUDP;
 
 String RTDateTime::ToString(const bool date, const bool time) const
 {
@@ -28,16 +31,23 @@ String RTDateTime::ToString(const bool date, const bool time) const
     }
     return result;
 }
-#
-WiFiUDP ntpUDP;
-RTClock::RTClock() : 
-    _ntpClient(ntpUDP, "pool.ntp.org", 3600)
+
+RTClock::RTClock(AppContext& ctx) : 
+    _ctx(ctx), _ntpClient(ntpUDP)//, "pool.ntp.org")
 {
-    _ntpClient.setUpdateInterval(300000);
 }
 
 RTClock::~RTClock()
 {
+}
+
+void RTClock::Init()
+{
+    _ntpServer = _ctx.GetSettingsMgr().GetStringValue(Setting::TIME_SERVER);
+    _ntpClient.setPoolServerName(_ntpServer.data());
+    _ntpClient.setTimeOffset(0);
+    _ntpClient.setUpdateInterval(300000);
+    _ntpClient.begin();
 }
 
 void RTClock::Update()
@@ -49,6 +59,11 @@ void RTClock::Update()
         time_t t = _ntpClient.getEpochTime();
         rtc.set(t);
     }
+}
+
+long RTClock::GetTimeOffset()
+{
+    return 3600 * _ctx.GetSettingsMgr().GetIntValue(Setting::TIME_OFFSET);
 }
 
 void RTClock::WakeInOneMinute()
@@ -64,7 +79,7 @@ void RTClock::WakeInOneMinute()
 RTDateTime RTClock::Now()
 {
     DS3232RTC rtc(true);
-    time_t t = rtc.get();
+    time_t t = rtc.get() + GetTimeOffset(); 
 
     RTDateTime dt = {};
 
@@ -76,24 +91,4 @@ RTDateTime RTClock::Now()
     dt.second = second(t);
 
     return dt;
-}
-
-bool RTClock::SetFromString(const String &inputStr)
-{
-    return false;
-}
-
-void RTClock::PrintHelpText() const
-{
-    Serial.println(F("Format YYMMDDwhhmmssx"));
-    Serial.println(F("Where YY = Year (ex. 20 for 2020)"));
-    Serial.println(F("      MM = Month (ex. 04 for April)"));
-    Serial.println(F("      DD = Day of month (ex. 09 for 9th)"));
-    Serial.println(F("      w  = Day of week from 1 to 7, 1 = Sunday (ex. 5 for Thursday)"));
-    Serial.println(F("      hh = hours in 24h format (ex. 09 for 9AM or 21 for 9PM)"));
-    Serial.println(F("      mm = minutes (ex. 02)"));
-    Serial.println(F("      ss = seconds (ex. 42)"));
-    Serial.println(F("Example for input : 2004095090242x"));
-    Serial.println(F("-----------------------------------------------------------------------------"));
-    Serial.println(F("Please enter the current time to set on DS3231 ended by 'x':"));
 }

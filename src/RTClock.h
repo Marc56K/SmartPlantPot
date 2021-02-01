@@ -5,6 +5,7 @@
 #include "NTPClient.h"
 #include "StringFormatHelper.h"
 
+class AppContext;
 struct RTDateTime
 {
     int year;
@@ -20,16 +21,19 @@ struct RTDateTime
 class RTClock
 {
 public:
-    RTClock();
+    RTClock(AppContext& ctx);
     ~RTClock();
 
+    void Init();
     void Update();
+
+    long GetTimeOffset();
 
     void WakeInOneMinute();
     RTDateTime Now();
-    bool SetFromString(const String &inputStr);
-    void PrintHelpText() const;
 
 private:
+    AppContext& _ctx;
+    std::string _ntpServer;
     NTPClient _ntpClient;
 };

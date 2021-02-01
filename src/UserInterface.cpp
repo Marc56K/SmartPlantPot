@@ -24,9 +24,9 @@ void UserInterface::Init()
     auto& sm = _ctx.GetSettingsMgr();
     auto onSelectedChanged = [&]() { sm.SaveToEEPROM(); };
     auto p = std::make_shared<PropertyPage>(onSelectedChanged);
-    _navigator.AddPage("WiFi", p); 
+    _navigator.AddPage("Settings", p); 
     p->Add(std::make_shared<StringEditor>(
-        "SSID", 
+        "WiFi SSID", 
         sm.GetStringValue(WIFI_SSID), 
         [&](const std::string& val) 
         { 
@@ -34,11 +34,28 @@ void UserInterface::Init()
         }));
 
     p->Add(std::make_shared<StringEditor>(
-        "KEY",
+        "WiFi Key",
         sm.GetStringValue(WIFI_KEY),
         [&](const std::string& val)
         {
             sm.SetValue(WIFI_KEY, val);
+        }));
+
+    p->Add(std::make_shared<StringEditor>(
+        "NTP Server",
+        sm.GetStringValue(TIME_SERVER),
+        [&](const std::string& val)
+        {
+            sm.SetValue(TIME_SERVER, val);
+        }));
+
+    p->Add(std::make_shared<NumberEditor>(
+        "Time Offset",
+        "h", 0, 1, -23, 23,
+        sm.GetIntValue(TIME_OFFSET),
+        [&](const double val)
+        {
+            sm.SetValue(TIME_OFFSET, (int)val);
         }));
 
     // Pumping-page

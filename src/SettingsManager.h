@@ -9,6 +9,8 @@ enum Setting : uint8_t
 {
     WIFI_SSID = 0,
     WIFI_KEY,
+    TIME_SERVER,
+    TIME_OFFSET,
     PUMP_TIME_HH,
     PUMP_TIME_MM,
     PUMP_DURATION,
