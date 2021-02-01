@@ -2,7 +2,8 @@
 
 AppContext::AppContext() : 
     _userInterface(*this),
-    _espSleepMgr(*this)
+    _powerMgr(*this),
+    _networkMgr(*this)
 {
 }
 
@@ -12,14 +13,16 @@ AppContext::~AppContext()
 
 void AppContext::Init()
 {
-    _espSleepMgr.PrintWakeupCause();
+    _powerMgr.PrintWakeupCause();
     _settingsMgr.LoadFromEEPROM();
     _userInterface.Init();
 }
 
 void AppContext::Update()
 {
-    _espSleepMgr.Update();
+    _clock.Update();
+    _networkMgr.Update();
+    _powerMgr.Update();
     _userInterface.Update();
 }
 
@@ -43,7 +46,12 @@ SensorManager& AppContext::GetSensorMgr()
     return _sensorMgr;
 }
 
-EspSleepManager& AppContext::GetEspSleepMgr()
+PowerManager& AppContext::GetPowerMgr()
 {
-    return _espSleepMgr;
+    return _powerMgr;
+}
+
+NetworkManager& AppContext::GetNetworkMgr()
+{
+    return _networkMgr;
 }

@@ -3,19 +3,19 @@
 
 class AppContext;
 
-class EspSleepManager
+class PowerManager
 {
 public:
-    EspSleepManager(AppContext& ctx);
-    ~EspSleepManager();
+    PowerManager(AppContext& ctx);
+    ~PowerManager();
 
     void PrintWakeupCause();
 
     void SetClockInterrupt(const bool enabled);
     void SetSleepDuration(const int seconds);
 
-    void ResetWakeTimer();
-    int GetRemainingWakeTime();
+    void ResetAutoSleepTimer();
+    int GetTimeUntilSleep();
 
     void RequestDeepSleep();
     bool DeepSleepRequested();

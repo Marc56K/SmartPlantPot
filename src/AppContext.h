@@ -4,7 +4,8 @@
 #include "RTClock.h"
 #include "SettingsManager.h"
 #include "SensorManager.h"
-#include "EspSleepManager.h"
+#include "PowerManager.h"
+#include "NetworkManager.h"
 
 class AppContext
 {
@@ -19,12 +20,14 @@ public:
     RTClock& GetClock();
     SettingsManager& GetSettingsMgr();
     SensorManager& GetSensorMgr();
-    EspSleepManager& GetEspSleepMgr();
+    PowerManager& GetPowerMgr();
+    NetworkManager& GetNetworkMgr();
 
 private:
     UserInterface _userInterface;
     RTClock _clock;
     SettingsManager _settingsMgr;
     SensorManager _sensorMgr;
-    EspSleepManager _espSleepMgr;
+    PowerManager _powerMgr;
+    NetworkManager _networkMgr;
 };

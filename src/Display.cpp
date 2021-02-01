@@ -8,8 +8,7 @@ extern sIMAGE IMG_tank_75;
 extern sIMAGE IMG_tank_100;
 
 Display::Display() :
-    _paint(_frameBuffer.data(), EPD_WIDTH, EPD_HEIGHT),
-    _firstFrame(true)
+    _paint(_frameBuffer.data(), EPD_WIDTH, EPD_HEIGHT)
 {
 }
 
@@ -19,7 +18,11 @@ Display::~Display()
 
 void Display::Init()
 {
-    _firstFrame = true;
+    if (_display.Init(lut_full_update) == 0)
+    {
+        _display.ClearFrameMemory(0xFF);
+        _display.DisplayFrame();
+    }
 
     if (_display.Init(lut_partial_update) != 0)
     {
@@ -29,15 +32,6 @@ void Display::Init()
 
 void Display::Present()
 {
-    if (_firstFrame)
-    {
-        _firstFrame = false;
-        for (auto& p : _frameBuffer)
-        {
-            p = ~p;
-        }
-    }
-
     _display.SetFrameMemory(_paint.GetImage(), 0, 0, _paint.GetWidth(), _paint.GetHeight());
     _display.DisplayFrame(true);
 }
@@ -55,6 +49,7 @@ void Display::RenderStatusBar(const float batVoltage, const float tankLevel, con
     _paint.DrawHorizontalLine(0, 267, EPD_WIDTH, 0);
     RenderBatteryIndicator(4, 272, batVoltage);
     RenderTankIndicator(100, 272, tankLevel);
+    RenderOnlineIndicator(60, 272, online);
 }
 
 void Display::RenderTankIndicator(const uint32_t x, const uint32_t y, const float v)

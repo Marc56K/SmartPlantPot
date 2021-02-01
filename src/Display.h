@@ -25,5 +25,4 @@ private:
     std::array<unsigned char, (EPD_WIDTH * EPD_HEIGHT)> _frameBuffer;
     Paint _paint;
     Epd _display;
-    bool _firstFrame;
 };

@@ -1,11 +1,11 @@
-#include "EspSleepManager.h"
+#include "PowerManager.h"
 #include "Arduino.h"
 #include "AppContext.h"
 
 #define WAKE_TIME_IN_SECONDS 60
 #define uS_TO_S_FACTOR 1000000ULL
 
-EspSleepManager::EspSleepManager(AppContext& ctx) :
+PowerManager::PowerManager(AppContext& ctx) :
     _ctx(ctx),
     _wakeTime(0),
     _clockInterruptEnabled(false),
@@ -13,14 +13,14 @@ EspSleepManager::EspSleepManager(AppContext& ctx) :
     _deepSleepRequested(false)
 {
     _wakeupCause = esp_sleep_get_wakeup_cause();
-    ResetWakeTimer();
+    ResetAutoSleepTimer();
 }
 
-EspSleepManager::~EspSleepManager()
+PowerManager::~PowerManager()
 {
 }
 
-void EspSleepManager::PrintWakeupCause()
+void PowerManager::PrintWakeupCause()
 {
     switch (_wakeupCause)
     {
@@ -45,22 +45,22 @@ void EspSleepManager::PrintWakeupCause()
     }
 }
 
-void EspSleepManager::SetClockInterrupt(const bool enabled)
+void PowerManager::SetClockInterrupt(const bool enabled)
 {
     _clockInterruptEnabled = enabled;
 }
 
-void EspSleepManager::SetSleepDuration(const int seconds)
+void PowerManager::SetSleepDuration(const int seconds)
 {
     _sleepDuration = seconds;
 }
 
-void EspSleepManager::ResetWakeTimer()
+void PowerManager::ResetAutoSleepTimer()
 {
     _wakeTime = millis();
 }
 
-int EspSleepManager::GetRemainingWakeTime()
+int PowerManager::GetTimeUntilSleep()
 {
     const unsigned long now = millis();
     if (now < _wakeTime)
@@ -71,21 +71,21 @@ int EspSleepManager::GetRemainingWakeTime()
     return max<int>(WAKE_TIME_IN_SECONDS - delta, 0);
 }
 
-void EspSleepManager::RequestDeepSleep()
+void PowerManager::RequestDeepSleep()
 {
     _deepSleepRequested = true;
 }
 
-bool EspSleepManager::DeepSleepRequested()
+bool PowerManager::DeepSleepRequested()
 {
     return _deepSleepRequested;
 }
 
-void EspSleepManager::Update()
+void PowerManager::Update()
 {
     if (!DeepSleepRequested())
     {
-        if (GetRemainingWakeTime() == 0)
+        if (GetTimeUntilSleep() == 0)
         {
             RequestDeepSleep();
         }

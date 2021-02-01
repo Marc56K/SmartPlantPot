@@ -71,7 +71,7 @@ void UserInterface::Update()
 {
     // handle input
 
-    if (!_ctx.GetEspSleepMgr().DeepSleepRequested())
+    if (!_ctx.GetPowerMgr().DeepSleepRequested())
     {
         auto btnPressed = _inputMgr.ButtonPressed();
         auto encoderDelta = _inputMgr.GetRotaryEncoderDelta();
@@ -88,7 +88,7 @@ void UserInterface::Update()
 
         if (btnPressed || encoderDelta != 0)
         {
-            _ctx.GetEspSleepMgr().ResetWakeTimer();
+            _ctx.GetPowerMgr().ResetAutoSleepTimer();
         }
     }
     else
@@ -102,6 +102,6 @@ void UserInterface::Update()
     _display.RenderStatusBar(
         _ctx.GetSensorMgr().GetBatVoltage(),
         _ctx.GetSensorMgr().GetWaterTankLevel(),
-        false);
+        _ctx.GetNetworkMgr().WifiConnected());
     _display.Present();
 }
