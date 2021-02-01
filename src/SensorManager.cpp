@@ -20,26 +20,26 @@ SensorManager::~SensorManager()
     digitalWrite(SENSOR_VCC_PIN, LOW);
 }
 
-double SensorManager::GetBatVoltage()
+float SensorManager::GetBatVoltage()
 {
-    double val = analogRead(BAT_LEVEL_PIN);
+    float val = analogRead(BAT_LEVEL_PIN);
     return 2.22 * 3.3 * val / 4095;
 }
 
-double SensorManager::GetSoilHumidity()
+int SensorManager::GetSoilHumidity()
 {
-    double value = analogRead(SENSOR_0_VALUE_PIN);
-    return std::max(3000.0 - value, 0.0) / 3000.0;
+    float value = analogRead(SENSOR_0_VALUE_PIN);
+    return std::max(3000.0f - value, 0.0f) / 30;
 }
 
-double SensorManager::GetWaterTankLevel()
+int SensorManager::GetWaterTankLevel()
 {
-    double value = analogRead(SENSOR_1_VALUE_PIN);
-    return std::max(3000.0 - value, 0.0) / 3000.0;
+    float value = analogRead(SENSOR_1_VALUE_PIN);
+    return std::max(3000.0f - value, 0.0f) / 30;
 }
 
-double SensorManager::GetTemperature()
+float SensorManager::GetTemperature()
 {
     DS3232RTC rtc(true);
-    return 0.25 * rtc.temperature();
+    return 0.25f * rtc.temperature();
 }

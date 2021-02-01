@@ -7,8 +7,8 @@ public:
     SensorManager();
     ~SensorManager();
 
-    double GetBatVoltage();
-    double GetSoilHumidity();
-    double GetWaterTankLevel();
-    double GetTemperature();
+    float GetBatVoltage();
+    int GetSoilHumidity();
+    int GetWaterTankLevel();
+    float GetTemperature();
 };

@@ -20,10 +20,104 @@ void UserInterface::Init()
     // home-page
     _navigator.AddPage("", std::make_shared<HomePage>(_ctx));
 
-    // WiFi-page
+    // Schedule-page
     auto& sm = _ctx.GetSettingsMgr();
     auto onSelectedChanged = [&]() { sm.SaveToEEPROM(); };
     auto p = std::make_shared<PropertyPage>(onSelectedChanged);
+    _navigator.AddPage("Watering", p);
+    p->Add(std::make_shared<BoolEditor>(
+        "Monday",
+        sm.GetIntValue(SCHEDULE_DAY_MO) != 0,
+        [&](const bool val)
+        {
+            sm.SetValue(SCHEDULE_DAY_MO, val ? 1 : 0);
+        }));
+    p->Add(std::make_shared<BoolEditor>(
+        "Tuesday",
+        sm.GetIntValue(SCHEDULE_DAY_TU) != 0,
+        [&](const bool val)
+        {
+            sm.SetValue(SCHEDULE_DAY_TU, val ? 1 : 0);
+        }));
+    p->Add(std::make_shared<BoolEditor>(
+        "Wednesday",
+        sm.GetIntValue(SCHEDULE_DAY_WE) != 0,
+        [&](const bool val)
+        {
+            sm.SetValue(SCHEDULE_DAY_WE, val ? 1 : 0);
+        }));
+    p->Add(std::make_shared<BoolEditor>(
+        "Thursday",
+        sm.GetIntValue(SCHEDULE_DAY_TH) != 0,
+        [&](const bool val)
+        {
+            sm.SetValue(SCHEDULE_DAY_TH, val ? 1 : 0);
+        }));
+    p->Add(std::make_shared<BoolEditor>(
+        "Friday",
+        sm.GetIntValue(SCHEDULE_DAY_FR) != 0,
+        [&](const bool val)
+        {
+            sm.SetValue(SCHEDULE_DAY_FR, val ? 1 : 0);
+        }));
+    p->Add(std::make_shared<BoolEditor>(
+        "Saturday",
+        sm.GetIntValue(SCHEDULE_DAY_SA) != 0,
+        [&](const bool val)
+        {
+            sm.SetValue(SCHEDULE_DAY_SA, val ? 1 : 0);
+        }));
+    p->Add(std::make_shared<BoolEditor>(
+        "Sunday",
+        sm.GetIntValue(SCHEDULE_DAY_SU) != 0,
+        [&](const bool val)
+        {
+            sm.SetValue(SCHEDULE_DAY_SU, val ? 1 : 0);
+        }));
+    p->Add(std::make_shared<TimeEditor>(
+        "Pump Time", 
+        sm.GetIntValue(SCHEDULE_TIME_HH),
+        sm.GetIntValue(SCHEDULE_TIME_MM),
+        [&](const uint8_t hh, const uint8_t mm)
+        {
+            sm.SetValue(SCHEDULE_TIME_HH, hh);
+            sm.SetValue(SCHEDULE_TIME_MM, mm);
+        }));
+    p->Add(std::make_shared<NumberEditor>(
+        "Pump Impulse",
+        "s", 1, 0.1, 0.0, 5,
+        sm.GetFloatValue(PUMP_IMPULSE),
+        [&](const double val)
+        {
+            sm.SetValue(PUMP_IMPULSE, val);
+        }));
+    p->Add(std::make_shared<NumberEditor>(
+        "Pump Cycles",
+        "x", 0, 1, 0, 5,
+        sm.GetIntValue(PUMP_CYCLES),
+        [&](const double val)
+        {
+            sm.SetValue(PUMP_CYCLES, val);
+        }));
+    p->Add(std::make_shared<NumberEditor>(
+        "Seepage Time",
+        "s", 0, 10, 10, 900,
+        sm.GetIntValue(SEEPAGE_DURATION),
+        [&](const double val)
+        {
+            sm.SetValue(SEEPAGE_DURATION, val);
+        }));
+    p->Add(std::make_shared<NumberEditor>(
+        "Soil Humidity",
+        "%", 0, 1, 1, 99,
+        sm.GetIntValue(SOIL_HUMIDITY),
+        [&](const double val)
+        {
+            sm.SetValue(SOIL_HUMIDITY, val);
+        }));
+
+    // Settings-page
+    p = std::make_shared<PropertyPage>(onSelectedChanged);
     _navigator.AddPage("Settings", p); 
     p->Add(std::make_shared<StringEditor>(
         "WiFi SSID", 
@@ -56,28 +150,6 @@ void UserInterface::Init()
         [&](const double val)
         {
             sm.SetValue(TIME_OFFSET, (int)val);
-        }));
-
-    // Pumping-page
-    p = std::make_shared<PropertyPage>(onSelectedChanged);
-    _navigator.AddPage("Pumping", p);
-    p->Add(std::make_shared<TimeEditor>(
-        "Time", 
-        sm.GetIntValue(PUMP_TIME_HH),
-        sm.GetIntValue(PUMP_TIME_MM),
-        [&](const uint8_t hh, const uint8_t mm)
-        {
-            sm.SetValue(PUMP_TIME_HH, hh);
-            sm.SetValue(PUMP_TIME_MM, mm);
-        }));
-
-    p->Add(std::make_shared<NumberEditor>(
-        "Duration",
-        "s", 1, 0.1, 0.0, 5,
-        sm.GetFloatValue(PUMP_DURATION),
-        [&](const double val)
-        {
-            sm.SetValue(PUMP_DURATION, val);
         }));
 
     // info-page

@@ -60,30 +60,26 @@ void SettingsManager::LoadFromEEPROM()
 
 void SettingsManager::InitDefaultValues()
 {
-    if (!HasValue(TIME_SERVER))
+    auto init = [&](const Setting s, const char* val)
     {
-        SetValue(TIME_SERVER, "pool.ntp.org");
-    }
+        if (!HasValue(s)) SetValue(s, val);
+    };
 
-    if (!HasValue(TIME_OFFSET))
-    {
-        SetValue(TIME_OFFSET, "0");
-    }
-
-    if (!HasValue(PUMP_DURATION))
-    {
-        SetValue(PUMP_DURATION, "0.5");
-    }
-
-    if (!HasValue(PUMP_TIME_HH))
-    {
-        SetValue(PUMP_TIME_HH, "7");
-    }
-
-    if (!HasValue(PUMP_TIME_MM))
-    {
-        SetValue(PUMP_TIME_MM, "0");
-    }
+    init(TIME_SERVER, "pool.ntp.org");
+    init(TIME_OFFSET, "1");
+    init(SCHEDULE_DAY_MO, "0");
+    init(SCHEDULE_DAY_TU, "0");
+    init(SCHEDULE_DAY_WE, "1");
+    init(SCHEDULE_DAY_TH, "0");
+    init(SCHEDULE_DAY_FR, "0");
+    init(SCHEDULE_DAY_SA, "0");
+    init(SCHEDULE_DAY_SU, "1");
+    init(SCHEDULE_TIME_HH, "12");
+    init(SCHEDULE_TIME_MM, "0");
+    init(PUMP_IMPULSE, "0.5");
+    init(PUMP_CYCLES, "5");
+    init(SEEPAGE_DURATION, "300");
+    init(SOIL_HUMIDITY, "30");
 
     SaveToEEPROM();
 }
@@ -138,12 +134,7 @@ float SettingsManager::GetFloatValue(Setting key)
 
 int SettingsManager::GetIntValue(Setting key)
 {
-    auto it = _settings.find(key);
-    if (it != _settings.end())
-    {
-        return atoi((const char*)it->second.data());
-    }
-    return 0;
+    return (int)GetFloatValue(key);
 }
 
 std::string SettingsManager::GetStringValue(Setting key)
