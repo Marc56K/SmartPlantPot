@@ -1,34 +1,15 @@
 #include "InputManager.h"
-#include <Arduino.h>
-#include "Config.h"
-#include "AiEsp32RotaryEncoder.h"
 
-AiEsp32RotaryEncoder rotaryEncoder(ROTENC_A_PIN, ROTENC_B_PIN, -1, -1);
-volatile int16_t encoderDelta = 0;
-volatile int16_t lastEncoderPos = 0;
-volatile unsigned long lastEncoderTime = 0;
-void EncoderISR()
+QueueHandle_t encoderIsrQueue = xQueueCreate(3, sizeof(bool));
+void IRAM_ATTR EncoderISR()
 {
-    rotaryEncoder.readEncoder_ISR();
-    int16_t encoderPos = rotaryEncoder.readEncoder();
-    if (lastEncoderPos != encoderPos)
-    {
-        auto now = millis();
-        unsigned long deltaT = now - lastEncoderTime;
-        lastEncoderTime = now;
-        int16_t delta = encoderPos - lastEncoderPos;
-        lastEncoderPos = encoderPos;
-        if (deltaT > 10 && deltaT < 200)
-        {
-            encoderDelta += delta;
-            //Serial.println(String("RAW ENC: ") + deltaT + " - > " + delta);
-        }
-    }
+    bool val = true;
+    xQueueSend(encoderIsrQueue, &val, 0);
 }
 
 volatile unsigned long buttonPressedTime = 0;
 volatile bool buttonPressed = false;
-void ButtonISR()
+void IRAM_ATTR ButtonISR()
 {
     auto now = millis();
     if (now - buttonPressedTime > 500)
@@ -38,13 +19,66 @@ void ButtonISR()
     }        
 }
 
+InputManager::InputManager() :
+    _rotaryEncoder(ROTENC_A_PIN, ROTENC_B_PIN, -1, -1),
+    _mutex(xSemaphoreCreateMutex())
+{
+}
+
+InputManager::~InputManager()
+{
+    bool val = false;
+    xQueueSend(encoderIsrQueue, &val, 0);
+}
+
 void InputManager::Init()
 {        
-    rotaryEncoder.begin();
-    rotaryEncoder.setup(EncoderISR);
-    rotaryEncoder.setBoundaries(INT16_MIN / 2, INT16_MAX / 2, false);
+    _rotaryEncoder.begin();
+    _rotaryEncoder.setup(EncoderISR);
+    _rotaryEncoder.setBoundaries(INT16_MIN / 2, INT16_MAX / 2, false);
     pinMode(ROTENC_SW_PIN, INPUT);
     attachInterrupt(ROTENC_SW_PIN, ButtonISR, FALLING);
+
+    xTaskCreatePinnedToCore(
+      [](void* p) { ((InputManager*)p)->EncoderIsrTaskProc(); },
+      "EncoderISR", /* Name of the task */
+      10000,  /* Stack size in words */
+      this,  /* Task input parameter */
+      1,  /* Priority of the task */
+      &_encoderIsrTask,  /* Task handle. */
+      0); /* Core where the task should run */
+}
+
+void InputManager::EncoderIsrTaskProc()
+{
+    bool run = true;
+    while(run)
+    {
+        xQueueReceive(encoderIsrQueue, &run, portMAX_DELAY);
+        if (run)
+        {
+            _rotaryEncoder.readEncoder_ISR();
+            int16_t encoderPos = _rotaryEncoder.readEncoder();
+            if (_lastEncoderPos != encoderPos)
+            {
+                auto now = millis();
+                unsigned long deltaT = now - _lastEncoderTime;
+                _lastEncoderTime = now;
+                int16_t delta = encoderPos - _lastEncoderPos;
+                _lastEncoderPos = encoderPos;
+                if (deltaT > 10 && deltaT < 200)
+                {
+                    xSemaphoreTake(_mutex, portMAX_DELAY);
+                    {
+                        _encoderDelta += delta;
+                    }
+                    xSemaphoreGive(_mutex); 
+                    //Serial.println(String("RAW ENC: ") + deltaT + " - > " + delta);
+                }
+            }
+        }
+    }
+    vTaskDelete(nullptr);
 }
 
 bool InputManager::ButtonPressed()
@@ -56,12 +90,17 @@ bool InputManager::ButtonPressed()
 
 int InputManager::GetRotaryEncoderDelta()
 {
-    auto result = encoderDelta;
-    encoderDelta = 0;
+    auto result = 0;
+    xSemaphoreTake(_mutex, portMAX_DELAY);
+    {
+        result = _encoderDelta;
+        _encoderDelta = 0;
+    }
+    xSemaphoreGive(_mutex); 
     return result;
 }
 
 unsigned long InputManager::GetLastInputTime()
 {
-    return std::max(lastEncoderTime, buttonPressedTime);
+    return std::max(_lastEncoderTime, buttonPressedTime);
 }
