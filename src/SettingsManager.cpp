@@ -66,7 +66,7 @@ void SettingsManager::InitDefaultValues()
     };
 
     init(TIME_SERVER, "pool.ntp.org");
-    init(TIME_OFFSET, "1");
+    init(TIME_OFFSET_HOURES, "1");
     init(SCHEDULE_DAY_MO, "0");
     init(SCHEDULE_DAY_TU, "0");
     init(SCHEDULE_DAY_WE, "1");
@@ -76,10 +76,11 @@ void SettingsManager::InitDefaultValues()
     init(SCHEDULE_DAY_SU, "1");
     init(SCHEDULE_TIME_HH, "12");
     init(SCHEDULE_TIME_MM, "0");
-    init(PUMP_IMPULSE, "0.5");
+    init(PUMP_IMPULSE_SEC, "0.5");
     init(PUMP_CYCLES, "5");
-    init(SEEPAGE_DURATION, "300");
-    init(SOIL_HUMIDITY, "30");
+    init(SEEPAGE_DURATION_SEC, "300");
+    init(SOIL_HUMIDITY_PERCENT, "30");
+    init(SLEEP_DURATION_MINUTES, "60");
 
     SaveToEEPROM();
 }

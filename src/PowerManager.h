@@ -9,12 +9,11 @@ public:
     PowerManager(AppContext& ctx);
     ~PowerManager();
 
+    void Init();
+
     void PrintWakeupCause();
 
-    void SetClockInterrupt(const bool enabled);
-    void SetSleepDuration(const int seconds);
-
-    void ResetAutoSleepTimer();
+    void ResetAutoSleepTimer(const bool causedByUserInput);
     int GetTimeUntilSleep();
 
     void RequestDeepSleep();
@@ -28,9 +27,7 @@ public:
 
 private:
     AppContext& _ctx;
-    unsigned long _wakeTime;
-    bool _clockInterruptEnabled;
-    int _sleepDuration;
+    unsigned long _sleepTime;
     bool _deepSleepRequested;
     unsigned long _pumpUntil;
     esp_sleep_wakeup_cause_t _wakeupCause;

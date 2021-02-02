@@ -104,7 +104,7 @@ void RTClock::Update()
 
 long RTClock::GetTimeOffset()
 {
-    return 3600 * _ctx.GetSettingsMgr().GetIntValue(Setting::TIME_OFFSET);
+    return 3600 * _ctx.GetSettingsMgr().GetIntValue(Setting::TIME_OFFSET_HOURES);
 }
 
 RTDateTime RTClock::Now()

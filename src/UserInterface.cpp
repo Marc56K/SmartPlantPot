@@ -28,26 +28,26 @@ void UserInterface::Init()
     p->Add(std::make_shared<NumberEditor>(
         "Soil Humidity",
         "%", 0, 1, 1, 99,
-        sm.GetIntValue(SOIL_HUMIDITY),
+        sm.GetIntValue(SOIL_HUMIDITY_PERCENT),
         [&](const double val)
         {
-            sm.SetValue(SOIL_HUMIDITY, val);
+            sm.SetValue(SOIL_HUMIDITY_PERCENT, val);
         }));
     p->Add(std::make_shared<NumberEditor>(
         "Seepage Time",
         "s", 0, 10, 10, 900,
-        sm.GetIntValue(SEEPAGE_DURATION),
+        sm.GetIntValue(SEEPAGE_DURATION_SEC),
         [&](const double val)
         {
-            sm.SetValue(SEEPAGE_DURATION, val);
+            sm.SetValue(SEEPAGE_DURATION_SEC, val);
         }));
     p->Add(std::make_shared<NumberEditor>(
         "Pump Impulse",
         "s", 1, 0.1, 0.0, 5,
-        sm.GetFloatValue(PUMP_IMPULSE),
+        sm.GetFloatValue(PUMP_IMPULSE_SEC),
         [&](const double val)
         {
-            sm.SetValue(PUMP_IMPULSE, val);
+            sm.SetValue(PUMP_IMPULSE_SEC, val);
         }));
     p->Add(std::make_shared<NumberEditor>(
         "Pump Cycles",
@@ -146,10 +146,18 @@ void UserInterface::Init()
     p->Add(std::make_shared<NumberEditor>(
         "Time Offset",
         "h", 0, 1, -23, 23,
-        sm.GetIntValue(TIME_OFFSET),
+        sm.GetIntValue(TIME_OFFSET_HOURES),
         [&](const double val)
         {
-            sm.SetValue(TIME_OFFSET, (int)val);
+            sm.SetValue(TIME_OFFSET_HOURES, (int)val);
+        }));
+    p->Add(std::make_shared<NumberEditor>(
+        "Sleep Time",
+        "m", 0, 1, 1, 999,
+        sm.GetIntValue(SLEEP_DURATION_MINUTES),
+        [&](const double val)
+        {
+            sm.SetValue(SLEEP_DURATION_MINUTES, (int)val);
         }));
 
     // info-page
@@ -177,7 +185,7 @@ void UserInterface::Update()
 
         if (btnPressed || encoderDelta != 0)
         {
-            _ctx.GetPowerMgr().ResetAutoSleepTimer();
+            _ctx.GetPowerMgr().ResetAutoSleepTimer(true);
         }
     }
     else

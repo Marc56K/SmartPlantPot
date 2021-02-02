@@ -26,7 +26,7 @@ void HomePage::Render(Paint& paint, const int x, const int y)
     paint.DrawImage(0, yStart - IMG_soil.Height, &IMG_soil);
     paint.DrawImage(0, yStart, &IMG_wet_soil);
 
-    const float level = _ctx.GetSettingsMgr().GetFloatValue(SOIL_HUMIDITY) / 100.0f;
+    const float level = _ctx.GetSettingsMgr().GetFloatValue(SOIL_HUMIDITY_PERCENT) / 100.0f;
     const uint32_t levelLine = top + (1.0f - level) * IMG_root.Height;
     const int segWidth = 5;
     for (int x = 2; x < IMG_root.Width; x += segWidth)

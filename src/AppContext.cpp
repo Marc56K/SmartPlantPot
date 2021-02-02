@@ -15,7 +15,7 @@ AppContext::~AppContext()
 void AppContext::Init()
 {
     _settingsMgr.LoadFromEEPROM();
-    _powerMgr.PrintWakeupCause();
+    _powerMgr.Init();
     _userInterface.Init();
     _clock.Init();
 }

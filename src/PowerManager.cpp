@@ -2,26 +2,30 @@
 #include "Arduino.h"
 #include "AppContext.h"
 
-#define WAKE_TIME_IN_SECONDS 60
 #define uS_TO_S_FACTOR 1000000ULL
+#define WAKE_TIME_AFTER_USER_INPUT 60 // sec
+#define WAKE_TIME_AFTER_ALERT 10
 
 PowerManager::PowerManager(AppContext& ctx) :
     _ctx(ctx),
-    _wakeTime(0),
-    _clockInterruptEnabled(true),
-    _sleepDuration(0),
+    _sleepTime(-1),
     _deepSleepRequested(false),
     _pumpUntil(0)
 {
     _wakeupCause = esp_sleep_get_wakeup_cause();
-    ResetAutoSleepTimer();
-
-    pinMode(PUMP_VCC_PIN, OUTPUT);
-    digitalWrite(PUMP_VCC_PIN, LOW);
+    PrintWakeupCause();
 }
 
 PowerManager::~PowerManager()
 {
+}
+
+void PowerManager::Init()
+{
+    pinMode(PUMP_VCC_PIN, OUTPUT);
+    digitalWrite(PUMP_VCC_PIN, LOW);
+
+    ResetAutoSleepTimer(_wakeupCause == ESP_SLEEP_WAKEUP_EXT0);
 }
 
 void PowerManager::PrintWakeupCause()
@@ -49,30 +53,22 @@ void PowerManager::PrintWakeupCause()
     }
 }
 
-void PowerManager::SetClockInterrupt(const bool enabled)
+void PowerManager::ResetAutoSleepTimer(const bool causedByUserInput)
 {
-    _clockInterruptEnabled = enabled;
-}
-
-void PowerManager::SetSleepDuration(const int seconds)
-{
-    _sleepDuration = seconds;
-}
-
-void PowerManager::ResetAutoSleepTimer()
-{
-    _wakeTime = millis();
+    if (causedByUserInput)
+    {
+        _sleepTime = millis() + 1000 * WAKE_TIME_AFTER_USER_INPUT;
+    }
+    else // timer or alert
+    {
+        _sleepTime = millis() + 1000 * WAKE_TIME_AFTER_ALERT;
+    }
 }
 
 int PowerManager::GetTimeUntilSleep()
 {
-    const unsigned long now = millis();
-    if (now < _wakeTime)
-    {
-        return 0;
-    }
-    const int delta = (now - _wakeTime) / 1000;
-    return max<int>(WAKE_TIME_IN_SECONDS - delta, 0);
+    const int now = millis();
+    return max<int>(_sleepTime - now, 0) / 1000;
 }
 
 void PowerManager::RequestDeepSleep()
@@ -87,7 +83,7 @@ bool PowerManager::DeepSleepRequested()
 
 void PowerManager::StartPumpImpulse()
 {
-    _pumpUntil = millis() + 1000 * _ctx.GetSettingsMgr().GetFloatValue(Setting::PUMP_IMPULSE);
+    _pumpUntil = millis() + 1000 * _ctx.GetSettingsMgr().GetFloatValue(Setting::PUMP_IMPULSE_SEC);
     digitalWrite(PUMP_VCC_PIN, HIGH);
 }
 
@@ -120,17 +116,14 @@ void PowerManager::Update()
     }
     else
     {
+        // wake on button press
         esp_sleep_enable_ext0_wakeup(ROTENC_SW_PIN, 0);
 
-        if (_clockInterruptEnabled)
-        {
-            esp_sleep_enable_ext1_wakeup(0x8000, ESP_EXT1_WAKEUP_ALL_LOW); // clock interrupt at pin[15]
-        }
+        // wake on timer alert
+        esp_sleep_enable_ext1_wakeup(0x8000, ESP_EXT1_WAKEUP_ALL_LOW); // clock interrupt at pin[15]
 
-        if (_sleepDuration > 0)
-        {
-            esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * _sleepDuration);
-        }
+        // wake after sleep time
+        esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * 60 * _ctx.GetSettingsMgr().GetIntValue(Setting::SLEEP_DURATION_MINUTES));
 
         if (Serial)
         {
