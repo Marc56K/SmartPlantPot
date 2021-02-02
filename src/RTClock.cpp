@@ -14,6 +14,30 @@ String RTDateTime::ToString(const bool date, const bool time) const
         result += StringFormatHelper::ToString(month, 2);
         result += "-";
         result += StringFormatHelper::ToString(day, 2);
+        switch(weekday)
+        {
+            case 1:
+                result += " Su";
+                break;
+            case 2:
+                result += " Mo";
+                break;
+            case 3:
+                result += " Tu";
+                break;
+            case 4:
+                result += " We";
+                break;
+            case 5:
+                result += " Th";
+                break;
+            case 6:
+                result += " Fr";
+                break;
+            case 7:
+                result += " Sa";
+                break;
+        }
     }
 
     if (date && time)
@@ -33,7 +57,10 @@ String RTDateTime::ToString(const bool date, const bool time) const
 }
 
 RTClock::RTClock(AppContext& ctx) : 
-    _ctx(ctx), _ntpClient(ntpUDP)//, "pool.ntp.org")
+    _ctx(ctx),
+    _ntpClient(ntpUDP),
+    _alarmHH(-1),
+    _alarmMM(-1)
 {
 }
 
@@ -52,28 +79,32 @@ void RTClock::Init()
 
 void RTClock::Update()
 {
+    DS3232RTC rtc(true);
+
     if (_ntpClient.update())
+    {   
+        rtc.set(_ntpClient.getEpochTime());
+        Serial.println("ntp update completed");  
+    }
+
+    const int hh = (24 + _ctx.GetSettingsMgr().GetIntValue(Setting::SCHEDULE_TIME_HH) - GetTimeOffset() / 3600) % 24;
+    const int mm = _ctx.GetSettingsMgr().GetIntValue(Setting::SCHEDULE_TIME_MM);
+
+    if (_alarmHH != hh || _alarmMM != mm)
     {
-        Serial.println("NTP update");
-        DS3232RTC rtc(true);
-        time_t t = _ntpClient.getEpochTime();
-        rtc.set(t);
+        _alarmHH = hh;
+        _alarmMM = mm;
+        Serial.println(String("set utc-alarm: ") + hh + ":" + mm);
+        rtc.setAlarm(ALM1_MATCH_HOURS, 0, mm, hh, 0);
+        rtc.alarm(ALARM_1);
+        rtc.squareWave(SQWAVE_NONE);
+        rtc.alarmInterrupt(ALARM_1, true);
     }
 }
 
 long RTClock::GetTimeOffset()
 {
     return 3600 * _ctx.GetSettingsMgr().GetIntValue(Setting::TIME_OFFSET);
-}
-
-void RTClock::WakeInOneMinute()
-{
-    DS3232RTC rtc(true);
-    time_t t = rtc.get();
-    rtc.setAlarm(ALM1_MATCH_MINUTES, 0, minute(t) + 1, 0, 0);
-    rtc.alarm(ALARM_1);
-    rtc.squareWave(SQWAVE_NONE);
-    rtc.alarmInterrupt(ALARM_1, true);
 }
 
 RTDateTime RTClock::Now()
@@ -86,6 +117,7 @@ RTDateTime RTClock::Now()
     dt.year = year(t);
     dt.month = month(t);
     dt.day = day(t);
+    dt.weekday = weekday(t);
     dt.hour = hour(t);
     dt.minute = minute(t);
     dt.second = second(t);

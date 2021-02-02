@@ -14,6 +14,7 @@ struct RTDateTime
     int hour;
     int minute;
     int second;
+    int weekday;
 
     String ToString(const bool date, const bool time) const;
 };
@@ -29,11 +30,12 @@ public:
 
     long GetTimeOffset();
 
-    void WakeInOneMinute();
     RTDateTime Now();
 
 private:
     AppContext& _ctx;
     std::string _ntpServer;
     NTPClient _ntpClient;
+    int _alarmHH;
+    int _alarmMM;
 };

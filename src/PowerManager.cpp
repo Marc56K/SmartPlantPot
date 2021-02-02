@@ -8,7 +8,7 @@
 PowerManager::PowerManager(AppContext& ctx) :
     _ctx(ctx),
     _wakeTime(0),
-    _clockInterruptEnabled(false),
+    _clockInterruptEnabled(true),
     _sleepDuration(0),
     _deepSleepRequested(false),
     _pumpUntil(0)
