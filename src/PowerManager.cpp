@@ -10,10 +10,14 @@ PowerManager::PowerManager(AppContext& ctx) :
     _wakeTime(0),
     _clockInterruptEnabled(false),
     _sleepDuration(0),
-    _deepSleepRequested(false)
+    _deepSleepRequested(false),
+    _pumpUntil(0)
 {
     _wakeupCause = esp_sleep_get_wakeup_cause();
     ResetAutoSleepTimer();
+
+    pinMode(PUMP_VCC_PIN, OUTPUT);
+    digitalWrite(PUMP_VCC_PIN, LOW);
 }
 
 PowerManager::~PowerManager()
@@ -81,8 +85,32 @@ bool PowerManager::DeepSleepRequested()
     return _deepSleepRequested;
 }
 
+void PowerManager::StartPumpImpulse()
+{
+    _pumpUntil = millis() + 1000 * _ctx.GetSettingsMgr().GetFloatValue(Setting::PUMP_IMPULSE);
+    digitalWrite(PUMP_VCC_PIN, HIGH);
+}
+
+void PowerManager::StopPumpImpulse()
+{
+    _pumpUntil = millis();
+    digitalWrite(PUMP_VCC_PIN, LOW);
+}
+
+bool PowerManager::PumpImpulseRunning()
+{
+    return millis() < _pumpUntil;
+}
+
 void PowerManager::Update()
 {
+    if (PumpImpulseRunning())
+    {
+        return;
+    }
+
+    StopPumpImpulse();
+
     if (!DeepSleepRequested())
     {
         if (GetTimeUntilSleep() == 0)

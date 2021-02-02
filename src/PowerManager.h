@@ -20,6 +20,10 @@ public:
     void RequestDeepSleep();
     bool DeepSleepRequested();
 
+    void StartPumpImpulse();
+    void StopPumpImpulse();
+    bool PumpImpulseRunning();
+
     void Update();
 
 private:
@@ -28,5 +32,6 @@ private:
     bool _clockInterruptEnabled;
     int _sleepDuration;
     bool _deepSleepRequested;
+    unsigned long _pumpUntil;
     esp_sleep_wakeup_cause_t _wakeupCause;
 };
