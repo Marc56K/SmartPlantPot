@@ -21,7 +21,7 @@ enum Setting : uint8_t
     SCHEDULE_TIME_HH,
     SCHEDULE_TIME_MM,
     PUMP_IMPULSE_SEC,
-    PUMP_CYCLES,
+    MAX_PUMP_IMPULSES,
     SEEPAGE_DURATION_SEC,
     SOIL_HUMIDITY_PERCENT,
     SLEEP_DURATION_MINUTES,
@@ -34,8 +34,8 @@ public:
     SettingsManager();
     ~SettingsManager();
 
-    void ClearEEPROM();
-    void LoadFromEEPROM();
+    void Init();
+    void ClearEEPROM();    
     void SaveToEEPROM();
 
     bool HasValue(Setting key);

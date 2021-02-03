@@ -1,6 +1,5 @@
 #include "RTClock.h"
 #include "AppContext.h"
-#include <DS3232RTC.h>
 
 WiFiUDP ntpUDP;
 
@@ -16,26 +15,28 @@ String RTDateTime::ToString(const bool date, const bool time) const
         result += StringFormatHelper::ToString(day, 2);
         switch(weekday)
         {
-            case 1:
+            case dowSunday:
                 result += " Su";
                 break;
-            case 2:
+            case dowMonday:
                 result += " Mo";
                 break;
-            case 3:
+            case dowTuesday:
                 result += " Tu";
                 break;
-            case 4:
+            case dowWednesday:
                 result += " We";
                 break;
-            case 5:
+            case dowThursday:
                 result += " Th";
                 break;
-            case 6:
+            case dowFriday:
                 result += " Fr";
                 break;
-            case 7:
+            case dowSaturday:
                 result += " Sa";
+                break;
+            case dowInvalid:
                 break;
         }
     }
@@ -110,17 +111,16 @@ long RTClock::GetTimeOffset()
 RTDateTime RTClock::Now()
 {
     DS3232RTC rtc(true);
-    time_t t = rtc.get() + GetTimeOffset(); 
-
+    time_t t = rtc.get();
     RTDateTime dt = {};
-
+    dt.utcTime = t;
+    dt.localTime = t + GetTimeOffset();
     dt.year = year(t);
     dt.month = month(t);
     dt.day = day(t);
-    dt.weekday = weekday(t);
+    dt.weekday = (timeDayOfWeek_t)weekday(t);
     dt.hour = hour(t);
     dt.minute = minute(t);
     dt.second = second(t);
-
     return dt;
 }

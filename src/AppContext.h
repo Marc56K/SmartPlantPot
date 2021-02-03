@@ -6,6 +6,7 @@
 #include "SensorManager.h"
 #include "PowerManager.h"
 #include "NetworkManager.h"
+#include "Scheduler.h"
 
 class AppContext
 {
@@ -22,6 +23,7 @@ public:
     SensorManager& GetSensorMgr();
     PowerManager& GetPowerMgr();
     NetworkManager& GetNetworkMgr();
+    Scheduler& GetScheduler();
 
 private:
     UserInterface _userInterface;
@@ -30,4 +32,5 @@ private:
     SensorManager _sensorMgr;
     PowerManager _powerMgr;
     NetworkManager _networkMgr;
+    Scheduler _scheduler;
 };

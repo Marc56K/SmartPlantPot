@@ -4,7 +4,8 @@ AppContext::AppContext() :
     _userInterface(*this),
     _clock(*this),
     _powerMgr(*this),
-    _networkMgr(*this)
+    _networkMgr(*this),
+    _scheduler(*this)
 {
 }
 
@@ -14,17 +15,20 @@ AppContext::~AppContext()
 
 void AppContext::Init()
 {
-    _settingsMgr.LoadFromEEPROM();
+    _settingsMgr.Init();
     _powerMgr.Init();
-    _userInterface.Init();
+    _networkMgr.Init();
     _clock.Init();
+    _scheduler.Init();
+    _userInterface.Init();
 }
 
 void AppContext::Update()
 {
-    _clock.Update();
     _networkMgr.Update();
-    _powerMgr.Update();
+    _clock.Update();
+    _scheduler.Update();
+    _powerMgr.Update();    
     _userInterface.Update();
 }
 
@@ -56,4 +60,9 @@ PowerManager& AppContext::GetPowerMgr()
 NetworkManager& AppContext::GetNetworkMgr()
 {
     return _networkMgr;
+}
+
+Scheduler& AppContext::GetScheduler()
+{
+    return _scheduler;
 }

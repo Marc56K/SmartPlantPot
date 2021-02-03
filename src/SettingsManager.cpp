@@ -14,16 +14,7 @@ SettingsManager::~SettingsManager()
 {    
 }
 
-void SettingsManager::ClearEEPROM()
-{
-    EEPROM.begin(EEPROM_SIZE);
-    uint8_t* ptr = EEPROM.getDataPtr();
-    memset(ptr, 0, EEPROM_SIZE);
-    EEPROM.commit();
-    EEPROM.end();
-}
-
-void SettingsManager::LoadFromEEPROM()
+void SettingsManager::Init()
 {
     _settings.clear();
     EEPROM.begin(EEPROM_SIZE);
@@ -77,12 +68,21 @@ void SettingsManager::InitDefaultValues()
     init(SCHEDULE_TIME_HH, "12");
     init(SCHEDULE_TIME_MM, "0");
     init(PUMP_IMPULSE_SEC, "0.5");
-    init(PUMP_CYCLES, "5");
+    init(MAX_PUMP_IMPULSES, "5");
     init(SEEPAGE_DURATION_SEC, "300");
     init(SOIL_HUMIDITY_PERCENT, "30");
     init(SLEEP_DURATION_MINUTES, "60");
 
     SaveToEEPROM();
+}
+
+void SettingsManager::ClearEEPROM()
+{
+    EEPROM.begin(EEPROM_SIZE);
+    uint8_t* ptr = EEPROM.getDataPtr();
+    memset(ptr, 0, EEPROM_SIZE);
+    EEPROM.commit();
+    EEPROM.end();
 }
 
 void SettingsManager::SaveToEEPROM()

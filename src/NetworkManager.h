@@ -13,6 +13,7 @@ public:
 
     bool WifiConnected();
 
+    void Init();
     void Update();
 
 private:

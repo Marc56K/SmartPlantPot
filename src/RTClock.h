@@ -2,19 +2,22 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include <WiFi.h>
+#include <DS3232RTC.h>
 #include "NTPClient.h"
 #include "StringFormatHelper.h"
 
 class AppContext;
 struct RTDateTime
 {
+    long utcTime;
+    long localTime;
     int year;
     int month;
     int day;
     int hour;
     int minute;
     int second;
-    int weekday;
+    timeDayOfWeek_t weekday;
 
     String ToString(const bool date, const bool time) const;
 };

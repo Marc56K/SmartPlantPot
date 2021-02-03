@@ -50,12 +50,12 @@ void UserInterface::Init()
             sm.SetValue(PUMP_IMPULSE_SEC, val);
         }));
     p->Add(std::make_shared<NumberEditor>(
-        "Pump Cycles",
-        "x", 0, 1, 0, 5,
-        sm.GetIntValue(PUMP_CYCLES),
+        "Pump Impulses",
+        "x", 0, 1, 1, 99,
+        sm.GetIntValue(MAX_PUMP_IMPULSES),
         [&](const double val)
         {
-            sm.SetValue(PUMP_CYCLES, val);
+            sm.SetValue(MAX_PUMP_IMPULSES, val);
         }));
     p->Add(std::make_shared<TimeEditor>(
         "Pump Time", 

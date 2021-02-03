@@ -33,6 +33,11 @@ bool NetworkManager::WifiConnected()
     return WiFi.isConnected();
 }
 
+void NetworkManager::Init()
+{
+    Update();
+}
+
 void NetworkManager::Update()
 {
     auto wifiSSID = _ctx.GetSettingsMgr().GetStringValue(Setting::WIFI_SSID);
