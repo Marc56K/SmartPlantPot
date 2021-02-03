@@ -43,7 +43,7 @@ void Display::RenderNavigator(PageNavigator& navigator)
     navigator.Render(_paint, 0, 0);
 }
 
-void Display::RenderStatusBar(const float batVoltage, const float tankLevel, const bool online)
+void Display::RenderStatusBar(const float batVoltage, const int tankLevel, const bool online)
 {
     _paint.DrawFilledRectangle(0, 267, EPD_WIDTH, EPD_HEIGHT, WHITE);
     _paint.DrawHorizontalLine(0, 267, EPD_WIDTH, 0);
@@ -52,16 +52,16 @@ void Display::RenderStatusBar(const float batVoltage, const float tankLevel, con
     RenderOnlineIndicator(60, 272, online);
 }
 
-void Display::RenderTankIndicator(const uint32_t x, const uint32_t y, const float v)
+void Display::RenderTankIndicator(const uint32_t x, const uint32_t y, const int v)
 {
     sIMAGE* img = &IMG_tank_100;
-    if (v < 0.2f)
+    if (v < 20)
         img = &IMG_tank_0;
-    else if (v < 0.4f)
+    else if (v < 40)
         img = &IMG_tank_25;
-    else if (v < 0.53f)
+    else if (v < 53)
         img = &IMG_tank_50;
-    else if (v < 0.56f)
+    else if (v < 56)
         img = &IMG_tank_75;
 
     _paint.DrawImage(x, y, img);

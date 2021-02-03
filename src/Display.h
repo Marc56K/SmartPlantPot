@@ -14,9 +14,9 @@ public:
     void Present();
 
     void RenderNavigator(PageNavigator& navigator);
-    void RenderStatusBar(const float batVoltage, const float tankLevel, const bool online);
+    void RenderStatusBar(const float batVoltage, const int tankLevel, const bool online);
 
-    void RenderTankIndicator(const uint32_t x, const uint32_t y, const float sensorValue);
+    void RenderTankIndicator(const uint32_t x, const uint32_t y, const int sensorValue);
     void RenderBatteryIndicator(const uint32_t x, const uint32_t y, const float voltage);
     void RenderOnlineIndicator(const uint32_t x, const uint32_t y, const bool online);
     void RenderBusyAnimation(const uint32_t x, const uint32_t y);    
