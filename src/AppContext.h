@@ -7,6 +7,7 @@
 #include "PowerManager.h"
 #include "NetworkManager.h"
 #include "Scheduler.h"
+#include "MqttClient.h"
 
 class AppContext
 {
@@ -33,4 +34,5 @@ private:
     PowerManager _powerMgr;
     NetworkManager _networkMgr;
     Scheduler _scheduler;
+    MqttClient _mqttClient;
 };

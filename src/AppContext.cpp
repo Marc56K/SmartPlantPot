@@ -5,7 +5,8 @@ AppContext::AppContext() :
     _clock(*this),
     _powerMgr(*this),
     _networkMgr(*this),
-    _scheduler(*this)
+    _scheduler(*this),
+    _mqttClient(*this)
 {
 }
 
@@ -20,6 +21,7 @@ void AppContext::Init()
     _networkMgr.Init();
     _clock.Init();
     _scheduler.Init();
+    _mqttClient.Init();
     _userInterface.Init();
 }
 
@@ -28,7 +30,8 @@ void AppContext::Update()
     _networkMgr.Update();
     _clock.Update();
     _scheduler.Update();
-    _powerMgr.Update();    
+    _powerMgr.Update();
+    _mqttClient.Update();
     _userInterface.Update();
 }
 

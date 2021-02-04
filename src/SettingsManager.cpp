@@ -72,6 +72,12 @@ void SettingsManager::InitDefaultValues()
     init(SEEPAGE_DURATION_MINUTES, "5");
     init(SOIL_MOISTURE_PERCENT, "30");
     init(SLEEP_DURATION_MINUTES, "60");
+    init(MQTT_SERVER, "io.adafruit.com");
+    init(MQTT_PORT, "1883");
+    init(MQTT_USER, "Unknown");
+    init(MQTT_KEY, "");
+    init(MQTT_TOPIC, "Unknown/feeds/smartplantpot.");
+    init(MQTT_ENABLED, "0");
 
     SaveToEEPROM();
 }

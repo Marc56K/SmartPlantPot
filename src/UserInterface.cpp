@@ -126,7 +126,6 @@ void UserInterface::Init()
         { 
             sm.SetValue(WIFI_SSID, val);
         }));
-
     p->Add(std::make_shared<StringEditor>(
         "WiFi Key",
         sm.GetStringValue(WIFI_KEY),
@@ -134,7 +133,6 @@ void UserInterface::Init()
         {
             sm.SetValue(WIFI_KEY, val);
         }));
-
     p->Add(std::make_shared<StringEditor>(
         "NTP Server",
         sm.GetStringValue(TIME_SERVER),
@@ -142,7 +140,6 @@ void UserInterface::Init()
         {
             sm.SetValue(TIME_SERVER, val);
         }));
-
     p->Add(std::make_shared<NumberEditor>(
         "Time Offset",
         "h", 0, 1, -23, 23,
@@ -158,6 +155,49 @@ void UserInterface::Init()
         [&](const double val)
         {
             sm.SetValue(SLEEP_DURATION_MINUTES, (int)val);
+        }));
+    p->Add(std::make_shared<BoolEditor>(
+        "MQTT Enabled",
+        sm.GetIntValue(MQTT_ENABLED) != 0,
+        [&](const bool val)
+        {
+            sm.SetValue(MQTT_ENABLED, val ? 1 : 0);
+        }));
+    p->Add(std::make_shared<StringEditor>(
+        "MQTT Server", 
+        sm.GetStringValue(MQTT_SERVER), 
+        [&](const std::string& val) 
+        { 
+            sm.SetValue(MQTT_SERVER, val);
+        }));
+    p->Add(std::make_shared<NumberEditor>(
+        "MQTT Port",
+        "", 0, 1, 0, 65535,
+        sm.GetIntValue(MQTT_PORT),
+        [&](const double val)
+        {
+            sm.SetValue(MQTT_PORT, (int)val);
+        }));
+    p->Add(std::make_shared<StringEditor>(
+        "MQTT User", 
+        sm.GetStringValue(MQTT_USER), 
+        [&](const std::string& val) 
+        { 
+            sm.SetValue(MQTT_USER, val);
+        }));
+    p->Add(std::make_shared<StringEditor>(
+        "MQTT Key", 
+        sm.GetStringValue(MQTT_KEY), 
+        [&](const std::string& val) 
+        { 
+            sm.SetValue(MQTT_KEY, val);
+        }));
+    p->Add(std::make_shared<StringEditor>(
+        "MQTT Topic", 
+        sm.GetStringValue(MQTT_TOPIC), 
+        [&](const std::string& val) 
+        { 
+            sm.SetValue(MQTT_TOPIC, val);
         }));
 
     // info-page
