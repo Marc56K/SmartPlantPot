@@ -95,6 +95,7 @@ void SettingsManager::SaveToEEPROM()
 {
     if (_pendingChanges)
     {
+        Serial.println("writing EEPROM");
         EEPROM.begin(EEPROM_SIZE);
         uint8_t numEntries = (uint8_t)_settings.size();
         uint8_t* ptr = EEPROM.getDataPtr();

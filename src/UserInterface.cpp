@@ -22,8 +22,8 @@ void UserInterface::Init()
 
     // Schedule-page
     auto& sm = _ctx.GetSettingsMgr();
-    auto onSelectedChanged = [&]() { sm.SaveToEEPROM(); };
-    auto p = std::make_shared<PropertyPage>(onSelectedChanged);
+    auto onEditingFinished = [&]() { sm.SaveToEEPROM(); };
+    auto p = std::make_shared<PropertyPage>(onEditingFinished);
     _navigator.AddPage("Watering", p);
     p->Add(std::make_shared<NumberEditor>(
         "Soil Moisture",
@@ -117,7 +117,7 @@ void UserInterface::Init()
         }));
 
     // Settings-page
-    p = std::make_shared<PropertyPage>(onSelectedChanged);
+    p = std::make_shared<PropertyPage>(onEditingFinished);
     _navigator.AddPage("Settings", p); 
     p->Add(std::make_shared<StringEditor>(
         "WiFi SSID", 
