@@ -22,8 +22,8 @@ enum Setting : uint8_t
     SCHEDULE_TIME_MM,
     PUMP_IMPULSE_SEC,
     MAX_PUMP_IMPULSES,
-    SEEPAGE_DURATION_SEC,
-    SOIL_HUMIDITY_PERCENT,
+    SEEPAGE_DURATION_MINUTES,
+    SOIL_MOISTURE_PERCENT,
     SLEEP_DURATION_MINUTES,
     NUM_SETTINGS
 };
@@ -37,6 +37,8 @@ public:
     void Init();
     void ClearEEPROM();    
     void SaveToEEPROM();
+
+    bool HasPendingChanges();
 
     bool HasValue(Setting key);
     float GetFloatValue(Setting key);

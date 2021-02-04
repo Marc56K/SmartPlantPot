@@ -19,7 +19,7 @@ void InfoPage::Render(Paint& paint, const int x, const int y)
     lines.push_back(std::string("BAT: ") + String(sm.GetBatVoltage()).c_str() + "V");
     lines.push_back(std::string("DT: ") + now.ToString(true, false).c_str());
     lines.push_back(std::string("TIME: ") + now.ToString(false, true).c_str());
-    lines.push_back(std::string("SOIL: ") + String(sm.GetSoilHumidity()).c_str());
+    lines.push_back(std::string("SOIL: ") + String(sm.GetSoilMoisture()).c_str());
     lines.push_back(std::string("TANK: ") + String(sm.GetWaterTankLevel()).c_str());
     lines.push_back(std::string("TEMP: ") + String(sm.GetTemperature()).c_str());
 

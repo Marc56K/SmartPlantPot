@@ -26,20 +26,20 @@ void UserInterface::Init()
     auto p = std::make_shared<PropertyPage>(onSelectedChanged);
     _navigator.AddPage("Watering", p);
     p->Add(std::make_shared<NumberEditor>(
-        "Soil Humidity",
+        "Soil Moisture",
         "%", 0, 1, 1, 99,
-        sm.GetIntValue(SOIL_HUMIDITY_PERCENT),
+        sm.GetIntValue(SOIL_MOISTURE_PERCENT),
         [&](const double val)
         {
-            sm.SetValue(SOIL_HUMIDITY_PERCENT, val);
+            sm.SetValue(SOIL_MOISTURE_PERCENT, val);
         }));
     p->Add(std::make_shared<NumberEditor>(
         "Seepage Time",
-        "s", 0, 10, 10, 900,
-        sm.GetIntValue(SEEPAGE_DURATION_SEC),
+        "m", 0, 1, 1, 60,
+        sm.GetIntValue(SEEPAGE_DURATION_MINUTES),
         [&](const double val)
         {
-            sm.SetValue(SEEPAGE_DURATION_SEC, val);
+            sm.SetValue(SEEPAGE_DURATION_MINUTES, val);
         }));
     p->Add(std::make_shared<NumberEditor>(
         "Pump Impulse",
@@ -172,6 +172,12 @@ void UserInterface::Update()
     {
         auto btnPressed = _inputMgr.ButtonPressed();
         auto encoderDelta = _inputMgr.GetRotaryEncoderDelta();
+
+        if (_ctx.GetPowerMgr().PumpImpulseRunning())
+        {
+            // ignore input because pump is interfering with rotary encoder
+            return;
+        }
 
         if (btnPressed)
         {

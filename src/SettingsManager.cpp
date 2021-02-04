@@ -69,8 +69,8 @@ void SettingsManager::InitDefaultValues()
     init(SCHEDULE_TIME_MM, "0");
     init(PUMP_IMPULSE_SEC, "0.5");
     init(MAX_PUMP_IMPULSES, "5");
-    init(SEEPAGE_DURATION_SEC, "300");
-    init(SOIL_HUMIDITY_PERCENT, "30");
+    init(SEEPAGE_DURATION_MINUTES, "5");
+    init(SOIL_MOISTURE_PERCENT, "30");
     init(SLEEP_DURATION_MINUTES, "60");
 
     SaveToEEPROM();
@@ -116,6 +116,11 @@ void SettingsManager::SaveToEEPROM()
 
         _pendingChanges = false;
     }
+}
+
+bool SettingsManager::HasPendingChanges()
+{
+    return _pendingChanges;
 }
 
 bool SettingsManager::HasValue(Setting key)

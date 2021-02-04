@@ -20,13 +20,13 @@ void HomePage::Render(Paint& paint, const int x, const int y)
     const uint32_t top = y;
     const uint32_t bottom = 267;
     const uint32_t totalRange = bottom - top;
-    const uint32_t height = round(totalRange * max(0.0f, min<float>(1.0f, _ctx.GetSensorMgr().GetSoilHumidity() / 100.0f)));
+    const uint32_t height = round(totalRange * max(0.0f, min<float>(1.0f, _ctx.GetSensorMgr().GetSoilMoisture() / 100.0f)));
     const uint32_t yStart = top + totalRange - height;
     
     paint.DrawImage(0, yStart - IMG_soil.Height, &IMG_soil);
     paint.DrawImage(0, yStart, &IMG_wet_soil);
 
-    const float level = _ctx.GetSettingsMgr().GetFloatValue(SOIL_HUMIDITY_PERCENT) / 100.0f;
+    const float level = _ctx.GetSettingsMgr().GetFloatValue(SOIL_MOISTURE_PERCENT) / 100.0f;
     const uint32_t levelLine = top + (1.0f - level) * IMG_root.Height;
     const int segWidth = 5;
     for (int x = 2; x < IMG_root.Width; x += segWidth)

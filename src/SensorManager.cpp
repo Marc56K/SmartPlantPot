@@ -26,7 +26,7 @@ float SensorManager::GetBatVoltage()
     return 2.22 * 3.3 * val / 4095;
 }
 
-int SensorManager::GetSoilHumidity()
+int SensorManager::GetSoilMoisture()
 {
     float value = analogRead(SENSOR_0_VALUE_PIN);
     return std::max(3000.0f - value, 0.0f) / 30;

@@ -8,7 +8,7 @@ public:
     ~SensorManager();
 
     float GetBatVoltage();
-    int GetSoilHumidity();
+    int GetSoilMoisture();
     int GetWaterTankLevel();
     float GetTemperature();
 };

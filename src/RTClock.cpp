@@ -1,5 +1,6 @@
 #include "RTClock.h"
 #include "AppContext.h"
+#include "StringFormatHelper.h"
 
 WiFiUDP ntpUDP;
 
@@ -88,14 +89,15 @@ void RTClock::Update()
         Serial.println("ntp update completed");  
     }
 
-    const int hh = (24 + _ctx.GetSettingsMgr().GetIntValue(Setting::SCHEDULE_TIME_HH) - GetTimeOffset() / 3600) % 24;
-    const int mm = _ctx.GetSettingsMgr().GetIntValue(Setting::SCHEDULE_TIME_MM);
+    int hh = 0;
+    int mm = 0;
+    _ctx.GetScheduler().GetNextWakupUtcTime(hh, mm);
 
     if (_alarmHH != hh || _alarmMM != mm)
     {
         _alarmHH = hh;
         _alarmMM = mm;
-        Serial.println(String("set utc-alarm: ") + hh + ":" + mm);
+        Serial.println(String("set utc-alarm: ") + StringFormatHelper::ToString(hh, 2) + ":" + StringFormatHelper::ToString(mm, 2));
         rtc.setAlarm(ALM1_MATCH_HOURS, 0, mm, hh, 0);
         rtc.alarm(ALARM_1);
         rtc.squareWave(SQWAVE_NONE);
@@ -114,7 +116,9 @@ RTDateTime RTClock::Now()
     time_t t = rtc.get();
     RTDateTime dt = {};
     dt.utcTime = t;
-    dt.localTime = t + GetTimeOffset();
+
+    t += GetTimeOffset();
+    dt.localTime = t;
     dt.year = year(t);
     dt.month = month(t);
     dt.day = day(t);
