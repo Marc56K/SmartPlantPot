@@ -101,21 +101,16 @@ void Scheduler::GetNextWakupUtcTime(int& utcHour, int& utcMinute)
 
     utcHour = (24 + sm.GetIntValue(Setting::SCHEDULE_TIME_HH) - clk.GetTimeOffset() / 3600) % 24;
     utcMinute = sm.GetIntValue(Setting::SCHEDULE_TIME_MM);
-    auto seepage = sm.GetIntValue(Setting::SEEPAGE_DURATION_MINUTES) * 60;
     if (pumpState.active)
     {
+        auto seepage = sm.GetIntValue(Setting::SEEPAGE_DURATION_MINUTES) * 60;
         long nextImpulse = pumpState.lastImpulseTime + seepage;
         nextImpulse = std::max(now.utcTime + 60, nextImpulse);
 
-        int utcHourImpule = hour(nextImpulse);
-        int utcMinuteImpulse = minute(nextImpulse);
-        if (utcHourImpule < utcHourImpule || (utcHourImpule == utcHourImpule && utcMinuteImpulse < utcMinute))
-        {
-            utcHour = utcHourImpule;
-            utcMinute = utcMinuteImpulse;
-        }
+        utcHour = hour(nextImpulse);
+        utcMinute = minute(nextImpulse);
     }
-
+    
     if (hour(now.utcTime) == utcHour && minute(now.utcTime) == utcMinute)
     {
         auto t = now.utcTime + 60;
