@@ -11,15 +11,10 @@ struct RTDateTime
 {
     long utcTime;
     long localTime;
-    int year;
-    int month;
-    int day;
-    int hour;
-    int minute;
-    int second;
-    timeDayOfWeek_t weekday;
 
-    String ToString(const bool date, const bool time) const;
+    String GetDate(const bool utc) const;
+    String GetWDay(const bool utc) const;
+    String GetTime(const bool utc) const;
 };
 
 class RTClock

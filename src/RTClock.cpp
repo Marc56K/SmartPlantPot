@@ -4,57 +4,52 @@
 
 WiFiUDP ntpUDP;
 
-String RTDateTime::ToString(const bool date, const bool time) const
+String RTDateTime::GetDate(const bool utc) const
 {
+    auto t = utc ? utcTime : localTime;
     String result;
-    if (date)
-    {
-        result += year;
-        result += "-";
-        result += StringFormatHelper::ToString(month, 2);
-        result += "-";
-        result += StringFormatHelper::ToString(day, 2);
-        switch(weekday)
-        {
-            case dowSunday:
-                result += " Su";
-                break;
-            case dowMonday:
-                result += " Mo";
-                break;
-            case dowTuesday:
-                result += " Tu";
-                break;
-            case dowWednesday:
-                result += " We";
-                break;
-            case dowThursday:
-                result += " Th";
-                break;
-            case dowFriday:
-                result += " Fr";
-                break;
-            case dowSaturday:
-                result += " Sa";
-                break;
-            case dowInvalid:
-                break;
-        }
-    }
+    result += year(t);
+    result += "-";
+    result += StringFormatHelper::ToString(month(t), 2);
+    result += "-";
+    result += StringFormatHelper::ToString(day(t), 2);
+    return result;
+}
 
-    if (date && time)
+String RTDateTime::GetWDay(const bool utc) const
+{
+    auto t = utc ? utcTime : localTime;
+    switch(weekday(t))
     {
-        result += " ";
+        case dowSunday:
+            return "Sunday";
+        case dowMonday:
+            return "Monday";
+        case dowTuesday:
+            return "Tuesday";
+        case dowWednesday:
+            return "Wednesday";
+        case dowThursday:
+            return "Thursday";
+        case dowFriday:
+            return "Friday";
+        case dowSaturday:
+            return "Saturday";
+        case dowInvalid:
+        default:
+            return "";
     }
+}
 
-    if (time)
-    {
-        result += StringFormatHelper::ToString(hour, 2);
-        result += ":";
-        result += StringFormatHelper::ToString(minute, 2);
-        result += ":";
-        result += StringFormatHelper::ToString(second, 2);
-    }
+String RTDateTime::GetTime(const bool utc) const
+{
+    auto t = utc ? utcTime : localTime;
+    String result;
+    result += StringFormatHelper::ToString(hour(t), 2);
+    result += ":";
+    result += StringFormatHelper::ToString(minute(t), 2);
+    result += ":";
+    result += StringFormatHelper::ToString(second(t), 2);
     return result;
 }
 
@@ -119,12 +114,6 @@ RTDateTime RTClock::Now()
 
     t += GetTimeOffset();
     dt.localTime = t;
-    dt.year = year(t);
-    dt.month = month(t);
-    dt.day = day(t);
-    dt.weekday = (timeDayOfWeek_t)weekday(t);
-    dt.hour = hour(t);
-    dt.minute = minute(t);
-    dt.second = second(t);
+
     return dt;
 }

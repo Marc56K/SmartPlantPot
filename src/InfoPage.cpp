@@ -17,8 +17,9 @@ void InfoPage::Render(Paint& paint, const int x, const int y)
     lines.clear();
     lines.push_back(std::string("ETA: ") + String(_ctx.GetPowerMgr().GetTimeUntilSleep()).c_str() + "s");
     lines.push_back(std::string("BAT: ") + String(sm.GetBatVoltage()).c_str() + "V");
-    lines.push_back(std::string("DT: ") + now.ToString(true, false).c_str());
-    lines.push_back(std::string("TIME: ") + now.ToString(false, true).c_str());
+    lines.push_back(std::string("DATE: ") + now.GetDate(false).c_str());
+    lines.push_back(std::string("WDAY: ") + now.GetWDay(false).c_str());
+    lines.push_back(std::string("TIME: ") + now.GetTime(false).c_str());
     lines.push_back(std::string("SOIL: ") + String(sm.GetSoilMoisture()).c_str());
     lines.push_back(std::string("TANK: ") + String(sm.GetWaterTankLevel()).c_str());
     lines.push_back(std::string("TEMP: ") + String(sm.GetTemperature()).c_str());

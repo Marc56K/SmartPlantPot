@@ -1,5 +1,6 @@
 #include "Scheduler.h"
 #include "AppContext.h"
+#include "TimeLib.h"
 
 struct PumpState
 {
@@ -35,12 +36,12 @@ void Scheduler::Update()
 
     if (!pumpState.active && pumpState.lastImpulseTime + 61 < now.utcTime)
     {
-        const bool validHour = sm.GetIntValue(Setting::SCHEDULE_TIME_HH) == now.hour;
-        const bool validMinute = sm.GetIntValue(Setting::SCHEDULE_TIME_MM) == now.minute;
+        const bool validHour = sm.GetIntValue(Setting::SCHEDULE_TIME_HH) == hour(now.localTime);
+        const bool validMinute = sm.GetIntValue(Setting::SCHEDULE_TIME_MM) == minute(now.localTime);
         const bool validTime = validHour && validMinute;
 
         bool validDay = false;
-        switch(now.weekday)
+        switch(weekday(now.localTime))
         {
             case dowSunday:
                 validDay = sm.GetIntValue(Setting::SCHEDULE_DAY_SU) != 0;
