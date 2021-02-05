@@ -98,24 +98,31 @@ void Scheduler::GetNextWakupUtcTime(int& utcHour, int& utcMinute)
 {
     auto& sm = _ctx.GetSettingsMgr();
     auto& clk = _ctx.GetClock();
-    auto now = clk.Now();
+    const auto now = clk.Now();
 
-    utcHour = (24 + sm.GetIntValue(Setting::SCHEDULE_TIME_HH) - clk.GetTimeOffset() / 3600) % 24;
-    utcMinute = sm.GetIntValue(Setting::SCHEDULE_TIME_MM);
+    long wakeTime = now.utcTime + SECS_PER_DAY;
+    auto updateWakeTime = [&wakeTime, &now](const long t)
+    {
+        const long minWakeTime = now.utcTime + SECS_PER_MIN;
+        if (t > minWakeTime && t < wakeTime)
+        {
+            wakeTime = t;
+        }
+    };
+
+    const long hh = sm.GetIntValue(Setting::SCHEDULE_TIME_HH);
+    const long mm = sm.GetIntValue(Setting::SCHEDULE_TIME_MM);
+    const long scheduleTime = hh * SECS_PER_HOUR + mm * SECS_PER_MIN - clk.GetTimeOffset();
+    updateWakeTime(previousMidnight(now.utcTime) + scheduleTime);
+    updateWakeTime(nextMidnight(now.utcTime) + scheduleTime);
+
     if (pumpState.active)
     {
-        auto seepage = sm.GetIntValue(Setting::SEEPAGE_DURATION_MINUTES) * 60;
-        long nextImpulse = pumpState.lastImpulseTime + seepage;
-        nextImpulse = std::max(now.utcTime + 60, nextImpulse);
-
-        utcHour = hour(nextImpulse);
-        utcMinute = minute(nextImpulse);
+        const long seepageDuration = sm.GetIntValue(Setting::SEEPAGE_DURATION_MINUTES) * SECS_PER_MIN;
+        const long nextImpulseTime = pumpState.lastImpulseTime + seepageDuration;
+        updateWakeTime(nextImpulseTime);
     }
     
-    if (hour(now.utcTime) == utcHour && minute(now.utcTime) == utcMinute)
-    {
-        auto t = now.utcTime + 60;
-        utcHour = hour(t);
-        utcMinute = minute(t);
-    }
+    utcHour = hour(wakeTime);
+    utcMinute = minute(wakeTime);
 }
