@@ -21,7 +21,7 @@ public:
 
     void StartPumpImpulse();
     void StopPumpImpulse();
-    bool PumpImpulseRunning();
+    unsigned long GetMillisSinceLastPumpImpulse();
 
     void Update();
 

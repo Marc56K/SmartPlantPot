@@ -89,18 +89,23 @@ void PowerManager::StartPumpImpulse()
 
 void PowerManager::StopPumpImpulse()
 {
-    _pumpUntil = millis();
+    _pumpUntil = std::min(_pumpUntil, millis());
     digitalWrite(PUMP_VCC_PIN, LOW);
 }
 
-bool PowerManager::PumpImpulseRunning()
+unsigned long PowerManager::GetMillisSinceLastPumpImpulse()
 {
-    return millis() < _pumpUntil;
+    auto now = millis();
+    if (now < _pumpUntil)
+    {
+        return 0;
+    }
+    return now - _pumpUntil;
 }
 
 void PowerManager::Update()
 {
-    if (PumpImpulseRunning())
+    if (millis() < _pumpUntil)
     {
         return;
     }

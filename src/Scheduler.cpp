@@ -26,7 +26,7 @@ void Scheduler::Init()
 
 void Scheduler::Update()
 {
-    if (_ctx.GetPowerMgr().PumpImpulseRunning())
+    if (_ctx.GetPowerMgr().GetMillisSinceLastPumpImpulse() == 0)
     {
         return;
     }

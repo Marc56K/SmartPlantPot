@@ -205,25 +205,22 @@ void UserInterface::Update()
         auto btnPressed = _inputMgr.ButtonPressed();
         auto encoderDelta = _inputMgr.GetRotaryEncoderDelta();
 
-        if (_ctx.GetPowerMgr().PumpImpulseRunning())
+        if (_ctx.GetPowerMgr().GetMillisSinceLastPumpImpulse() > 500)
         {
-            // ignore input because pump is interfering with rotary encoder
-            return;
-        }
+            if (btnPressed)
+            {
+                _navigator.Click();
+            }
 
-        if (btnPressed)
-        {
-            _navigator.Click();
-        }
+            if (encoderDelta != 0)
+            {
+                _navigator.Scroll(encoderDelta);
+            }
 
-        if (encoderDelta != 0)
-        {
-            _navigator.Scroll(encoderDelta);
-        }
-
-        if (btnPressed || encoderDelta != 0)
-        {
-            _ctx.GetPowerMgr().ResetAutoSleepTimer(true);
+            if (btnPressed || encoderDelta != 0)
+            {
+                _ctx.GetPowerMgr().ResetAutoSleepTimer(true);
+            }
         }
     }
     else

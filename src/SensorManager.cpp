@@ -22,7 +22,12 @@ SensorManager::~SensorManager()
 
 float SensorManager::GetBatVoltage()
 {
-    float val = analogRead(BAT_LEVEL_PIN);
+    float val = 0;
+    for (int i = 0; i < 10; ++i)
+    {
+        val += analogRead(BAT_LEVEL_PIN);
+    }
+    val /= 10;
     return 2.22 * 3.3 * val / 4095;
 }
 
