@@ -26,14 +26,6 @@ void UserInterface::Init()
     auto p = std::make_shared<PropertyPage>(onEditingFinished);
     _navigator.AddPage("Watering", p);
     p->Add(std::make_shared<NumberEditor>(
-        "Soil Moisture",
-        "%", 0, 1, 1, 99,
-        sm.GetIntValue(SOIL_MOISTURE_PERCENT),
-        [&](const double val)
-        {
-            sm.SetValue(SOIL_MOISTURE_PERCENT, val);
-        }));
-    p->Add(std::make_shared<NumberEditor>(
         "Seepage Time",
         "m", 0, 1, 1, 60,
         sm.GetIntValue(SEEPAGE_DURATION_MINUTES),

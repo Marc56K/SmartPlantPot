@@ -104,7 +104,7 @@ void Scheduler::GetNextWakupUtcTime(int& utcHour, int& utcMinute)
     auto updateWakeTime = [&wakeTime, &now](const long t)
     {
         const long minWakeTime = now.utcTime + SECS_PER_MIN;
-        if (t > minWakeTime && t < wakeTime)
+        if (t >= minWakeTime && t < wakeTime)
         {
             wakeTime = t;
         }
