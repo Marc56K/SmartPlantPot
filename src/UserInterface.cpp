@@ -234,6 +234,7 @@ void UserInterface::Update()
     _display.RenderStatusBar(
         _ctx.GetSensorMgr().GetBatVoltage(),
         _ctx.GetSensorMgr().GetWaterTankLevel(),
+        _ctx.GetPowerMgr().DeepSleepRequested() == false,
         _ctx.GetNetworkMgr().WifiConnected());
     _display.Present();
 }

@@ -14,7 +14,7 @@ public:
     void Present();
 
     void RenderNavigator(PageNavigator& navigator);
-    void RenderStatusBar(const float batVoltage, const int tankLevel, const bool online);
+    void RenderStatusBar(const float batVoltage, const int tankLevel, const bool wifi, const bool connected);
 
     void RenderTankIndicator(const uint32_t x, const uint32_t y, const int sensorValue);
     void RenderBatteryIndicator(const uint32_t x, const uint32_t y, const float voltage);

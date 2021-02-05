@@ -43,13 +43,16 @@ void Display::RenderNavigator(PageNavigator& navigator)
     navigator.Render(_paint, 0, 0);
 }
 
-void Display::RenderStatusBar(const float batVoltage, const int tankLevel, const bool online)
+void Display::RenderStatusBar(const float batVoltage, const int tankLevel, const bool wifi, const bool connected)
 {
     _paint.DrawFilledRectangle(0, 267, EPD_WIDTH, EPD_HEIGHT, WHITE);
     _paint.DrawHorizontalLine(0, 267, EPD_WIDTH, 0);
     RenderBatteryIndicator(4, 272, batVoltage);
     RenderTankIndicator(100, 272, tankLevel);
-    RenderOnlineIndicator(60, 272, online);
+    if (wifi)
+    {
+        RenderOnlineIndicator(60, 272, connected);
+    }
 }
 
 void Display::RenderTankIndicator(const uint32_t x, const uint32_t y, const int v)
