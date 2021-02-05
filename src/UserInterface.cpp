@@ -205,7 +205,7 @@ void UserInterface::Update()
         auto btnPressed = _inputMgr.ButtonPressed();
         auto encoderDelta = _inputMgr.GetRotaryEncoderDelta();
 
-        if (_ctx.GetPowerMgr().GetMillisSinceLastPumpImpulse() > 500)
+        if (_ctx.GetPowerMgr().GetMillisSinceLastPumpImpulse() > 2000)
         {
             if (btnPressed)
             {
