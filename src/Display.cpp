@@ -58,13 +58,13 @@ void Display::RenderStatusBar(const float batVoltage, const int tankLevel, const
 void Display::RenderTankIndicator(const uint32_t x, const uint32_t y, const int v)
 {
     sIMAGE* img = &IMG_tank_100;
-    if (v < 20)
+    if (v < 15)
         img = &IMG_tank_0;
-    else if (v < 40)
+    else if (v < 35)
         img = &IMG_tank_25;
-    else if (v < 53)
+    else if (v < 60)
         img = &IMG_tank_50;
-    else if (v < 56)
+    else if (v < 85)
         img = &IMG_tank_75;
 
     _paint.DrawImage(x, y, img);

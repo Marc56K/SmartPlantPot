@@ -2,7 +2,7 @@
 #define ROTENC_A_PIN 27
 #define ROTENC_B_PIN 26
 #define SENSOR_VCC_PIN 2
-#define SENSOR_0_VALUE_PIN 36
-#define SENSOR_1_VALUE_PIN 39
+#define SOIL_SENSOR_PIN 36
+#define TANK_SENSOR_PIN 39
 #define BAT_LEVEL_PIN 34
 #define PUMP_VCC_PIN 13
