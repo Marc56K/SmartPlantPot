@@ -21,7 +21,7 @@ void InfoPage::Render(Paint& paint, const int x, const int y)
     lines.push_back(std::string("WDAY: ") + now.GetWDay(false).c_str());
     lines.push_back(std::string("TIME: ") + now.GetTime(false).c_str());
     lines.push_back(std::string("SOIL: ") + String(sm.GetSoilMoisture()).c_str() + "%");
-    lines.push_back(std::string("TANK: ") + String(sm.GetWaterTankLevel()).c_str() + "%");
+    lines.push_back(std::string("TANK: ") + String(sm.GetWaterTankLevel(false)).c_str() + "ml");
     lines.push_back(std::string("TEMP: ") + String(sm.GetTemperature()).c_str());
 
     TextPage::Render(paint, x, y);

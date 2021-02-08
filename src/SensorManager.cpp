@@ -33,28 +33,44 @@ float SensorManager::GetBatVoltage()
 
 int SensorManager::GetSoilMoisture()
 {
-    static int m[5][2] = 
+    static int sensor2Percent[5][2] = 
     {
-         { 3025, 0 },
+         { 2660, 0 },
          { 1780, 30 },
          { 1424, 60 },
          { 1320, 88 },
          { 1270, 100 }
     };
-    return GetTransformedSensorValue(analogRead(SOIL_SENSOR_PIN), m, 5);
+    return GetTransformedSensorValue(analogRead(SOIL_SENSOR_PIN), sensor2Percent, 5);
 }
 
-int SensorManager::GetWaterTankLevel()
+int SensorManager::GetWaterTankLevel(const bool percent)
 {
-    static int m[5][2] = 
+    static int sensor2Percent[8][2] =
     {
-         { 3025, 0 },
-         { 1780, 15 },
-         { 1424, 31 },
-         { 1333, 49 },
-         { 1300, 100}
+        { 3000, 0 },
+        { 2980, 18 },
+        { 2920, 36 },
+        { 2855, 52 },
+        { 2540, 69 },
+        { 2000, 87 },
+        { 1400, 91 },
+        { 99, 100 }
     };
-    return GetTransformedSensorValue(analogRead(TANK_SENSOR_PIN), m, 5);
+
+    static int sensor2ml[8][2] =
+    {
+        { 3000, 0 },
+        { 2980, 102 },
+        { 2920, 207 },
+        { 2855, 302 },
+        { 2540, 400 },
+        { 2000, 500 },
+        { 1400, 528 },
+        { 99, 580 }
+    };
+
+    return GetTransformedSensorValue(analogRead(TANK_SENSOR_PIN), percent ? sensor2Percent : sensor2ml, 8);
 }
 
 float SensorManager::GetTemperature()

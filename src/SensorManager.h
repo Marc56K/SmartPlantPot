@@ -9,7 +9,7 @@ public:
 
     float GetBatVoltage();
     int GetSoilMoisture();
-    int GetWaterTankLevel();
+    int GetWaterTankLevel(const bool percent);
     float GetTemperature();
 
 private:

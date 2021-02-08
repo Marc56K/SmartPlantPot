@@ -61,7 +61,7 @@ void MqttClient::Update()
         };
 
         publishValue("soilmoisture", sensors.GetSoilMoisture(), 0);
-        publishValue("watertanklevel", sensors.GetWaterTankLevel(), 1);
+        publishValue("watertanklevel", sensors.GetWaterTankLevel(false), 1);
         publishValue("batteryvoltage", sensors.GetBatVoltage(), 2);
         publishValue("temperature", sensors.GetTemperature(), 3);
     }
