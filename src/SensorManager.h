@@ -9,10 +9,13 @@ public:
 
     float GetBatVoltage();
     int GetSoilMoisture();
-    int GetWaterTankLevel(const bool percent);
+    int GetWaterTankLevel();
     float GetTemperature();
 
 private:
+    int GetSensorValueMedian(
+        const int pin, 
+        const int samples);
     int GetTransformedSensorValue(
         const int value,
         const int m[][2],

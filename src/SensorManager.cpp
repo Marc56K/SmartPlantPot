@@ -1,6 +1,7 @@
 #include "SensorManager.h"
 #include <Arduino.h>
 #include <DS3232RTC.h>
+#include <algorithm>
 
 SensorManager::SensorManager()
 {
@@ -33,50 +34,51 @@ float SensorManager::GetBatVoltage()
 
 int SensorManager::GetSoilMoisture()
 {
-    static int sensor2Percent[5][2] = 
+    static const int sensor2Percent[2][2] = 
     {
          { 2660, 0 },
-         { 1780, 30 },
-         { 1424, 60 },
-         { 1320, 88 },
          { 1270, 100 }
     };
-    return GetTransformedSensorValue(analogRead(SOIL_SENSOR_PIN), sensor2Percent, 5);
+    return GetTransformedSensorValue(GetSensorValueMedian(SOIL_SENSOR_PIN, 11), sensor2Percent, 2);
 }
 
-int SensorManager::GetWaterTankLevel(const bool percent)
+int SensorManager::GetWaterTankLevel()
 {
-    static int sensor2Percent[8][2] =
+    static const int m[10][2] =
     {
-        { 3000, 0 },
-        { 2980, 18 },
-        { 2920, 36 },
-        { 2855, 52 },
-        { 2540, 69 },
-        { 2000, 87 },
-        { 1400, 91 },
-        { 99, 100 }
+        { 3030,	0 },
+        { 3019,	19 },
+        { 2970,	38 },
+        { 2868,	57 },
+        { 2680,	76 },
+        { 2425,	86 },
+        { 2138,	90 },
+        { 1520,	95 },
+        { 950,	97 },
+        { 112,	100 }
     };
 
-    static int sensor2ml[8][2] =
-    {
-        { 3000, 0 },
-        { 2980, 102 },
-        { 2920, 207 },
-        { 2855, 302 },
-        { 2540, 400 },
-        { 2000, 500 },
-        { 1400, 528 },
-        { 99, 580 }
-    };
-
-    return GetTransformedSensorValue(analogRead(TANK_SENSOR_PIN), percent ? sensor2Percent : sensor2ml, 8);
+    return GetTransformedSensorValue(GetSensorValueMedian(TANK_SENSOR_PIN, 31), m, 10);
 }
 
 float SensorManager::GetTemperature()
 {
     DS3232RTC rtc(true);
     return 0.25f * rtc.temperature();
+}
+
+int SensorManager::GetSensorValueMedian(
+        const int pin, 
+        const int samples)
+{
+    const int s = (samples > 0 && samples % 2 == 1) ? samples : samples + 1;
+    std::vector<int> values(s);
+    for (int i = 0; i < values.size(); ++i)
+    {
+        values[i] = analogRead(pin);
+    }
+    std::sort(values.begin(), values.end());
+    return values[values.size() / 2];
 }
 
 int SensorManager::GetTransformedSensorValue(
