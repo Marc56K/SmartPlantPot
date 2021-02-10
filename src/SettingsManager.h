@@ -31,6 +31,7 @@ enum Setting : uint8_t
     MQTT_KEY,
     MQTT_TOPIC,
     MQTT_ENABLED,
+    PUMP_ENABLED,
     NUM_SETTINGS
 };
 

@@ -33,6 +33,13 @@ void UserInterface::Init()
         {
             sm.SetValue(SEEPAGE_DURATION_MINUTES, val);
         }));
+    p->Add(std::make_shared<BoolEditor>(
+        "Pump Enabled",
+        sm.GetIntValue(PUMP_ENABLED) != 0,
+        [&](const bool val)
+        {
+            sm.SetValue(PUMP_ENABLED, val ? 1 : 0);
+        }));
     p->Add(std::make_shared<NumberEditor>(
         "Pump Impulse",
         "s", 1, 0.1, 0.0, 5,

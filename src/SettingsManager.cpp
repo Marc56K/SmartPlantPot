@@ -78,6 +78,7 @@ void SettingsManager::InitDefaultValues()
     init(MQTT_KEY, "");
     init(MQTT_TOPIC, "Unknown/feeds/smartplantpot.");
     init(MQTT_ENABLED, "0");
+    init(PUMP_ENABLED, "1");
 
     SaveToEEPROM();
 }
