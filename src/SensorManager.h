@@ -7,6 +7,8 @@ public:
     SensorManager();
     ~SensorManager();
 
+    void Init();
+
     float GetBatVoltage();
     int GetSoilMoisture();
     int GetWaterTankLevel();
@@ -20,4 +22,7 @@ private:
         const int value,
         const int m[][2],
         const int mapSize);
+
+private:
+    unsigned long _created;
 };

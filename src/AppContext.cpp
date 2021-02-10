@@ -17,6 +17,7 @@ AppContext::~AppContext()
 void AppContext::Init()
 {
     _settingsMgr.Init();
+    _sensorMgr.Init();
     _powerMgr.Init();
     _networkMgr.Init();
     _clock.Init();

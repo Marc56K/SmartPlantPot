@@ -3,7 +3,10 @@
 #include <DS3232RTC.h>
 #include <algorithm>
 
-SensorManager::SensorManager()
+#define INIT_DURATION_MILLIS 500
+
+SensorManager::SensorManager() :
+    _created(millis())
 {
     pinMode(SENSOR_VCC_PIN, OUTPUT);
     digitalWrite(SENSOR_VCC_PIN, HIGH);
@@ -12,13 +15,24 @@ SensorManager::SensorManager()
     pinMode(TANK_SENSOR_PIN, INPUT);
 
     pinMode(BAT_LEVEL_PIN, INPUT);
-
-    delay(400);
 }
 
 SensorManager::~SensorManager()
 {
     digitalWrite(SENSOR_VCC_PIN, LOW);
+}
+
+void SensorManager::Init()
+{
+    const auto now = millis();
+    const auto delta = now - _created;
+    const auto waitTime = delta > INIT_DURATION_MILLIS ? 0 : INIT_DURATION_MILLIS - delta;
+
+    if (waitTime > 0)
+    {
+        // moisture sensor need some time to deliver valid values
+        vTaskDelay(waitTime / portTICK_PERIOD_MS);
+    }
 }
 
 float SensorManager::GetBatVoltage()
