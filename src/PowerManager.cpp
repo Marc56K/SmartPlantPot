@@ -1,6 +1,8 @@
 #include "PowerManager.h"
 #include "Arduino.h"
 #include "AppContext.h"
+#include <esp_wifi.h>
+#include <esp_adc_cal.h>
 
 #define uS_TO_S_FACTOR 1000000ULL
 #define WAKE_TIME_AFTER_USER_INPUT 60 // sec
@@ -145,6 +147,10 @@ void PowerManager::Update()
             Serial.println("going to sleep");
             Serial.flush();
         }
+
+        WiFi.mode(WIFI_OFF);
+        esp_wifi_stop();
+        adc_power_off();
 
         esp_deep_sleep_start();
     }
