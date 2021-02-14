@@ -78,7 +78,7 @@ void RTClock::Update()
 {
     DS3232RTC rtc(true);
 
-    if (_ntpClient.update())
+    if (_ctx.GetNetworkMgr().WifiConnected() && _ntpClient.update())
     {   
         rtc.set(_ntpClient.getEpochTime());
         Serial.println("ntp update completed");  
