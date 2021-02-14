@@ -6,3 +6,4 @@
 #define TANK_SENSOR_PIN 39
 #define BAT_LEVEL_PIN 34
 #define PUMP_VCC_PIN 13
+#define AUX_PIN 19

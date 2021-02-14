@@ -132,7 +132,7 @@ void PowerManager::Update()
     else
     {
         // wake on button press
-        esp_sleep_enable_ext0_wakeup(ROTENC_SW_PIN, 0);
+        esp_sleep_enable_ext0_wakeup(ROTENC_SW_PIN, 1);
 
         // wake on timer alert
         esp_sleep_enable_ext1_wakeup(0x8000, ESP_EXT1_WAKEUP_ALL_LOW); // clock interrupt at pin[15]

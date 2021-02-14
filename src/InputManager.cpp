@@ -34,10 +34,13 @@ InputManager::~InputManager()
 void InputManager::Init()
 {        
     _rotaryEncoder.begin();
-    _rotaryEncoder.setup(EncoderISR);
+
+    attachInterrupt(digitalPinToInterrupt(ROTENC_A_PIN), EncoderISR, CHANGE);
+	attachInterrupt(digitalPinToInterrupt(ROTENC_B_PIN), EncoderISR, CHANGE);
+
     _rotaryEncoder.setBoundaries(INT16_MIN / 2, INT16_MAX / 2, false);
-    pinMode(ROTENC_SW_PIN, INPUT);
-    attachInterrupt(ROTENC_SW_PIN, ButtonISR, FALLING);
+    pinMode(ROTENC_SW_PIN, INPUT_PULLDOWN);
+    attachInterrupt(ROTENC_SW_PIN, ButtonISR, RISING);
 
     xTaskCreatePinnedToCore(
       [](void* p) { ((InputManager*)p)->EncoderIsrTaskProc(); },
@@ -66,14 +69,14 @@ void InputManager::EncoderIsrTaskProc()
                 _lastEncoderTime = now;
                 int16_t delta = encoderPos - _lastEncoderPos;
                 _lastEncoderPos = encoderPos;
-                if (deltaT > 10 && deltaT < 200)
+                if (deltaT < 50)
                 {
                     xSemaphoreTake(_mutex, portMAX_DELAY);
                     {
                         _encoderDelta += delta;
                     }
                     xSemaphoreGive(_mutex); 
-                    //Serial.println(String("RAW ENC: ") + deltaT + " - > " + delta);
+                    Serial.println(String("RAW ENC: ") + deltaT + " - > " + delta);
                 }
             }
         }
