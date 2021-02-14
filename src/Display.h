@@ -12,6 +12,7 @@ public:
 
     void Init();
     void Present();
+    void Sleep();
 
     void RenderNavigator(PageNavigator& navigator);
     void RenderStatusBar(const float batVoltage, const int tankLevel, const bool wifi, const bool connected);

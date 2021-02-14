@@ -244,4 +244,9 @@ void UserInterface::Update()
         _ctx.GetPowerMgr().DeepSleepRequested() == false,
         _ctx.GetNetworkMgr().WifiConnected());
     _display.Present();
+
+    if (_ctx.GetPowerMgr().DeepSleepRequested())
+    {
+        _display.Sleep();
+    }
 }

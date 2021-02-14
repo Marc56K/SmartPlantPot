@@ -36,6 +36,11 @@ void Display::Present()
     _display.DisplayFrame(true);
 }
 
+void Display::Sleep()
+{
+    _display.Sleep();
+}
+
 void Display::RenderNavigator(PageNavigator& navigator)
 {
     navigator.SetWdith(EPD_WIDTH);
