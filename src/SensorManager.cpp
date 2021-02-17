@@ -6,7 +6,11 @@
 #define INIT_DURATION_MILLIS 500
 
 SensorManager::SensorManager() :
-    _created(millis())
+    _created(millis()),    
+    _mutex(nullptr),
+    _shutdownRequested(nullptr),
+    _shutdownCompleted(nullptr),
+    _task(nullptr)
 {
     pinMode(SENSOR_VCC_PIN, OUTPUT);
     digitalWrite(SENSOR_VCC_PIN, HIGH);
@@ -19,12 +23,50 @@ SensorManager::SensorManager() :
 
 SensorManager::~SensorManager()
 {
+    if (_task != nullptr)
+    {
+        xEventGroupSetBits(_shutdownRequested, 1);
+        xEventGroupWaitBits(_shutdownCompleted, 1, pdFALSE, pdTRUE, portMAX_DELAY);
+    }
+
+    vEventGroupDelete(_shutdownRequested);
+    vEventGroupDelete(_shutdownCompleted);
+
+    vTaskDelete(_task);
+
+    vSemaphoreDelete(_mutex);
+
     digitalWrite(SENSOR_VCC_PIN, LOW);
 }
 
 void SensorManager::Init()
 {
     _sensorStates.IsValid = false;
+
+    _mutex = xSemaphoreCreateRecursiveMutex();
+    _shutdownRequested = xEventGroupCreate();
+    _shutdownCompleted = xEventGroupCreate();
+
+    xTaskCreatePinnedToCore(
+      [](void* p)
+      {
+          auto* sm = static_cast<SensorManager*>(p);
+          while(true)
+          {
+            sm->ReadAnalogPins();
+
+            if (xEventGroupWaitBits(sm->_shutdownRequested, 1, pdFALSE, pdTRUE, 10) == 1)
+            {
+                break;
+            }
+          }
+      },
+      "SensorReadTask", /* Name of the task */
+      10000,  /* Stack size in words */
+      this,  /* Task input parameter */
+      1,  /* Priority of the task */
+      &_task,  /* Task handle. */
+      0); /* Core where the task should run */
 
     const auto now = millis();
     const auto delta = now - _created;
@@ -35,16 +77,46 @@ void SensorManager::Init()
         // moisture sensor need some time to deliver valid values
         vTaskDelay(waitTime / portTICK_PERIOD_MS);
     }
+}
 
-    Update();
+void SensorManager::ReadAnalogPins()
+{
+    xSemaphoreTakeRecursive(_mutex, portMAX_DELAY);
+    {
+        bool init = _analogPinValues.empty();
+        auto readAnalogPin = [&](const int pin)
+        {
+            if (init)
+            {
+                _analogPinValues[pin] = analogRead(pin);
+            }
+            _analogPinValues[pin] = (_analogPinValues[pin] * 99 + analogRead(pin) * 1) / 100;
+        };
+
+        readAnalogPin(BAT_LEVEL_PIN);
+        readAnalogPin(SOIL_SENSOR_PIN);
+        readAnalogPin(TANK_SENSOR_PIN);        
+    }
+    xSemaphoreGiveRecursive(_mutex);
 }
 
 void SensorManager::Update()
 {
+    xSemaphoreTakeRecursive(_mutex, portMAX_DELAY);
+    {
+        if (_analogPinValues.empty())
+        {
+            ReadAnalogPins();
+        }
+        _sensorStates.BatRaw = _analogPinValues[BAT_LEVEL_PIN];
+        _sensorStates.SoilMoistureRaw = _analogPinValues[SOIL_SENSOR_PIN];
+        _sensorStates.WaterTankLevelRaw = _analogPinValues[TANK_SENSOR_PIN];
+    }
+    xSemaphoreGiveRecursive(_mutex);
+
     // BatVoltage
     {
-        const float val = GetSensorValueMedian(BAT_LEVEL_PIN, 31);
-        _sensorStates.BatVoltage = 2.22 * 3.3 * val / 4095;
+        _sensorStates.BatVoltage = 2.22f * 3.3f * _sensorStates.BatRaw / 4095;
     }
 
     // Temperature
@@ -60,27 +132,23 @@ void SensorManager::Update()
             { 2660, 0 },
             { 1270, 100 }
         };
-        _sensorStates.SoilMoistureRaw = GetSensorValueMedian(SOIL_SENSOR_PIN, 11);
         _sensorStates.SoilMoistureInPerCent = GetTransformedSensorValue(_sensorStates.SoilMoistureRaw, sensor2Percent, 2);
     }
 
     // WaterTankLevel
     {
-        static const int sensor2Percent[10][2] =
+        static const int sensor2Percent[8][2] =
         {
-            { 3030,	0 },
-            { 3019,	19 },
-            { 2970,	38 },
-            { 2868,	57 },
-            { 2680,	76 },
-            { 2425,	86 },
-            { 2138,	90 },
-            { 1520,	95 },
-            { 950,	97 },
-            { 112,	100 }
+            { 2867,	0 },
+            { 2853,	20 },
+            { 2818,	41 },
+            { 2740,	61 },
+            { 2654,	71 },
+            { 2352,	85 },
+            { 1710,	92 },
+            { 138,	100 }
         };
-        _sensorStates.WaterTankLevelRaw = GetSensorValueMedian(TANK_SENSOR_PIN, 31);
-        _sensorStates.WaterTankLevelInPerCent = GetTransformedSensorValue(_sensorStates.WaterTankLevelRaw, sensor2Percent, 10);
+        _sensorStates.WaterTankLevelInPerCent = GetTransformedSensorValue(_sensorStates.WaterTankLevelRaw, sensor2Percent, 8);
     }
 
     _sensorStates.IsValid = true;
@@ -89,20 +157,6 @@ void SensorManager::Update()
 const SensorStates& SensorManager::States() const
 {
     return _sensorStates;
-}
-
-int SensorManager::GetSensorValueMedian(
-        const int pin, 
-        const int samples)
-{
-    const int s = (samples > 0 && samples % 2 == 1) ? samples : samples + 1;
-    std::vector<int> values(s);
-    for (int i = 0; i < values.size(); ++i)
-    {
-        values[i] = analogRead(pin);
-    }
-    std::sort(values.begin(), values.end());
-    return values[values.size() / 2];
 }
 
 int SensorManager::GetTransformedSensorValue(
