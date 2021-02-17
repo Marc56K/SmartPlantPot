@@ -33,6 +33,8 @@ public:
 
 private:
     void ReadAnalogPins();
+    int GetSensorValueMedian(const int pin, 
+        const int samples);
 
     int GetTransformedSensorValue(
         const int value,
@@ -46,5 +48,5 @@ private:
     EventGroupHandle_t _shutdownCompleted;
     TaskHandle_t _task;
     SensorStates _sensorStates;
-    std::map<int, int> _analogPinValues;
+    std::map<int, float> _analogPinValues;
 };
