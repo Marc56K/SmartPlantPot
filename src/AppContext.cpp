@@ -30,6 +30,7 @@ void AppContext::Update()
 {
     _networkMgr.Update();
     _clock.Update();
+    _sensorMgr.Update();
     _scheduler.Update();
     _powerMgr.Update();
     _mqttClient.Update();

@@ -239,8 +239,8 @@ void UserInterface::Update()
 
     _display.RenderNavigator(_navigator);
     _display.RenderStatusBar(
-        _ctx.GetSensorMgr().GetBatVoltage(),
-        _ctx.GetSensorMgr().GetWaterTankLevel(),
+        _ctx.GetSensorMgr().States().BatVoltage,
+        _ctx.GetSensorMgr().States().WaterTankLevelInPerCent,
         _ctx.GetPowerMgr().DeepSleepRequested() == false,
         _ctx.GetNetworkMgr().WifiConnected());
     _display.Present();

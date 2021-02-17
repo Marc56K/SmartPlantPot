@@ -17,7 +17,6 @@ PowerManager::PowerManager(AppContext& ctx) :
     _pumpUntil(0)
 {
     _wakeupCause = esp_sleep_get_wakeup_cause();
-    PrintWakeupCause();
 }
 
 PowerManager::~PowerManager()
@@ -30,6 +29,8 @@ void PowerManager::Init()
     digitalWrite(PUMP_VCC_PIN, LOW);
 
     ResetAutoSleepTimer(_wakeupCause == ESP_SLEEP_WAKEUP_EXT0);
+
+    PrintWakeupCause();
 }
 
 void PowerManager::PrintWakeupCause()
@@ -151,6 +152,8 @@ void PowerManager::Update()
         WiFi.mode(WIFI_OFF);
         esp_wifi_stop();
         adc_power_off();
+
+        //esp_deep_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_OFF);
 
         esp_deep_sleep_start();
     }

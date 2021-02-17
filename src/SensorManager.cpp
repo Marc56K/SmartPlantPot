@@ -24,6 +24,8 @@ SensorManager::~SensorManager()
 
 void SensorManager::Init()
 {
+    _sensorStates.IsValid = false;
+
     const auto now = millis();
     const auto delta = now - _created;
     const auto waitTime = delta > INIT_DURATION_MILLIS ? 0 : INIT_DURATION_MILLIS - delta;
@@ -33,47 +35,60 @@ void SensorManager::Init()
         // moisture sensor need some time to deliver valid values
         vTaskDelay(waitTime / portTICK_PERIOD_MS);
     }
+
+    Update();
 }
 
-float SensorManager::GetBatVoltage()
+void SensorManager::Update()
 {
-    const float val = GetSensorValueMedian(BAT_LEVEL_PIN, 31);
-    return 2.22 * 3.3 * val / 4095;
-}
-
-int SensorManager::GetSoilMoisture()
-{
-    static const int sensor2Percent[2][2] = 
+    // BatVoltage
     {
-         { 2660, 0 },
-         { 1270, 100 }
-    };
-    return GetTransformedSensorValue(GetSensorValueMedian(SOIL_SENSOR_PIN, 11), sensor2Percent, 2);
-}
+        const float val = GetSensorValueMedian(BAT_LEVEL_PIN, 31);
+        _sensorStates.BatVoltage = 2.22 * 3.3 * val / 4095;
+    }
 
-int SensorManager::GetWaterTankLevel()
-{
-    static const int m[10][2] =
+    // Temperature
     {
-        { 3030,	0 },
-        { 3019,	19 },
-        { 2970,	38 },
-        { 2868,	57 },
-        { 2680,	76 },
-        { 2425,	86 },
-        { 2138,	90 },
-        { 1520,	95 },
-        { 950,	97 },
-        { 112,	100 }
-    };
+        DS3232RTC rtc(true);
+        _sensorStates.Temperature = 0.25f * rtc.temperature();
+    }
 
-    return GetTransformedSensorValue(GetSensorValueMedian(TANK_SENSOR_PIN, 31), m, 10);
+    // SoilMoisture
+    {
+        static const int sensor2Percent[2][2] = 
+        {
+            { 2660, 0 },
+            { 1270, 100 }
+        };
+        _sensorStates.SoilMoistureRaw = GetSensorValueMedian(SOIL_SENSOR_PIN, 11);
+        _sensorStates.SoilMoistureInPerCent = GetTransformedSensorValue(_sensorStates.SoilMoistureRaw, sensor2Percent, 2);
+    }
+
+    // WaterTankLevel
+    {
+        static const int sensor2Percent[10][2] =
+        {
+            { 3030,	0 },
+            { 3019,	19 },
+            { 2970,	38 },
+            { 2868,	57 },
+            { 2680,	76 },
+            { 2425,	86 },
+            { 2138,	90 },
+            { 1520,	95 },
+            { 950,	97 },
+            { 112,	100 }
+        };
+        _sensorStates.WaterTankLevelRaw = GetSensorValueMedian(TANK_SENSOR_PIN, 31);
+        _sensorStates.WaterTankLevelInPerCent = GetTransformedSensorValue(_sensorStates.WaterTankLevelRaw, sensor2Percent, 10);
+    }
+
+    _sensorStates.IsValid = true;
 }
 
-float SensorManager::GetTemperature()
+const SensorStates& SensorManager::States() const
 {
-    DS3232RTC rtc(true);
-    return 0.25f * rtc.temperature();
+    return _sensorStates;
 }
 
 int SensorManager::GetSensorValueMedian(

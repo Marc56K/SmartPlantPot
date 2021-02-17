@@ -1,6 +1,22 @@
 #pragma once
 #include "Config.h"
 
+struct SensorStates
+{
+    bool IsValid;
+    float BatVoltage;
+    float Temperature;
+    int SoilMoistureRaw;
+    int SoilMoistureInPerCent;
+    int WaterTankLevelRaw;
+    int WaterTankLevelInPerCent;
+
+    SensorStates() :
+        IsValid(false)
+    {            
+    }
+};
+
 class SensorManager
 {
 public:
@@ -8,11 +24,9 @@ public:
     ~SensorManager();
 
     void Init();
+    void Update();
 
-    float GetBatVoltage();
-    int GetSoilMoisture();
-    int GetWaterTankLevel();
-    float GetTemperature();
+    const SensorStates& States() const;
 
 private:
     int GetSensorValueMedian(
@@ -25,4 +39,5 @@ private:
 
 private:
     unsigned long _created;
+    SensorStates _sensorStates;
 };

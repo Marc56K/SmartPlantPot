@@ -41,7 +41,7 @@ void MqttClient::Update()
         }
         
         auto now = _ctx.GetClock().Now().utcTime;
-        auto& sensors = _ctx.GetSensorMgr();
+        auto& s = _ctx.GetSensorMgr().States();
         auto publishValue = [&](const char* name, float value, int cacheIdx)
         {
             if (lastMqttPublishTime[cacheIdx] + 60 < now)
@@ -60,9 +60,9 @@ void MqttClient::Update()
             }   
         };
 
-        publishValue("soilmoisture", sensors.GetSoilMoisture(), 0);
-        publishValue("watertanklevel", sensors.GetWaterTankLevel(), 1);
-        publishValue("batteryvoltage", sensors.GetBatVoltage(), 2);
-        publishValue("temperature", sensors.GetTemperature(), 3);
+        publishValue("soilmoisture", s.SoilMoistureInPerCent, 0);
+        publishValue("watertanklevel", s.WaterTankLevelInPerCent, 1);
+        publishValue("batteryvoltage", s.BatVoltage, 2);
+        publishValue("temperature", s.Temperature, 3);
     }
 }

@@ -47,7 +47,7 @@ void HomePage::Render(Paint& paint, const int x, const int y)
     const uint32_t top = y;
     const uint32_t bottom = 267;
     const uint32_t totalRange = bottom - top;
-    const uint32_t height = round(totalRange * max(0.0f, min<float>(1.0f, _ctx.GetSensorMgr().GetSoilMoisture() / 100.0f)));
+    const uint32_t height = round(totalRange * max(0.0f, min<float>(1.0f, _ctx.GetSensorMgr().States().SoilMoistureInPerCent / 100.0f)));
     const uint32_t yStart = top + totalRange - height;
     
     paint.DrawImage(0, yStart - IMG_soil.Height, &IMG_soil);
