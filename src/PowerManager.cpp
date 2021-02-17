@@ -5,7 +5,6 @@
 #include <esp_adc_cal.h>
 
 #define uS_TO_S_FACTOR 1000000ULL
-#define WAKE_TIME_AFTER_USER_INPUT 60 // sec
 #define WAKE_TIME_AFTER_ALERT 10
 
 volatile long pumpDuration = 0;
@@ -62,7 +61,7 @@ void PowerManager::ResetAutoSleepTimer(const bool causedByUserInput)
 {
     if (causedByUserInput)
     {
-        _sleepTime = millis() + 1000 * WAKE_TIME_AFTER_USER_INPUT;
+        _sleepTime = millis() + 1000 * _ctx.GetSettingsMgr().GetIntValue(Setting::WAKE_DURATION_SEC);
     }
     else // timer or alert
     {

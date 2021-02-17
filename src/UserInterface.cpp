@@ -148,6 +148,14 @@ void UserInterface::Init()
             sm.SetValue(TIME_OFFSET_HOURES, (int)val);
         }));
     p->Add(std::make_shared<NumberEditor>(
+        "Wake Time",
+        "s", 0, 1, 10, 999,
+        sm.GetIntValue(WAKE_DURATION_SEC),
+        [&](const double val)
+        {
+            sm.SetValue(WAKE_DURATION_SEC, (int)val);
+        }));
+    p->Add(std::make_shared<NumberEditor>(
         "Sleep Time",
         "m", 0, 1, 1, 999,
         sm.GetIntValue(SLEEP_DURATION_MINUTES),

@@ -32,6 +32,7 @@ enum Setting : uint8_t
     MQTT_TOPIC,
     MQTT_ENABLED,
     PUMP_ENABLED,
+    WAKE_DURATION_SEC,
     NUM_SETTINGS
 };
 

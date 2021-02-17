@@ -79,6 +79,7 @@ void SettingsManager::InitDefaultValues()
     init(MQTT_TOPIC, "Unknown/feeds/smartplantpot.");
     init(MQTT_ENABLED, "0");
     init(PUMP_ENABLED, "1");
+    init(WAKE_DURATION_SEC, "60");
 
     SaveToEEPROM();
 }
