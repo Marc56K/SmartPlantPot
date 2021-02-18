@@ -87,7 +87,7 @@ bool PowerManager::DeepSleepRequested()
 
 void PowerManager::StartPumpImpulse()
 {
-    pumpDuration = 1000 * _ctx.GetSettingsMgr().GetFloatValue(Setting::PUMP_IMPULSE_SEC);
+    pumpDuration = 1000 * _ctx.GetSettingsMgr().GetFloatValue(Setting::PUMPING_DURATION_SEC);
     
     xTaskCreatePinnedToCore(
       [](void* p)

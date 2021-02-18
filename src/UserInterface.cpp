@@ -25,6 +25,46 @@ void UserInterface::Init()
     auto onEditingFinished = [&]() { sm.SaveToEEPROM(); };
     auto p = std::make_shared<PropertyPage>(onEditingFinished);
     _navigator.AddPage("Watering", p);
+    p->Add(std::make_shared<BoolEditor>(
+        "Enabled",
+        sm.GetIntValue(PUMP_ENABLED) != 0,
+        [&](const bool val)
+        {
+            sm.SetValue(PUMP_ENABLED, val ? 1 : 0);
+        }));
+    p->Add(std::make_shared<NumberEditor>(
+        "Interval",
+        "d", 0, 1, 1, 99,
+        sm.GetIntValue(WATERING_INTERVAL_DAYS),
+        [&](const double val)
+        {
+            sm.SetValue(WATERING_INTERVAL_DAYS, val);
+        }));
+    p->Add(std::make_shared<TimeEditor>(
+        "Time", 
+        sm.GetIntValue(WATERING_TIME_HH),
+        sm.GetIntValue(WATERING_TIME_MM),
+        [&](const uint8_t hh, const uint8_t mm)
+        {
+            sm.SetValue(WATERING_TIME_HH, hh);
+            sm.SetValue(WATERING_TIME_MM, mm);
+        }));
+    p->Add(std::make_shared<NumberEditor>(
+        "Pumping",
+        "s", 1, 0.1, 0.0, 5,
+        sm.GetFloatValue(PUMPING_DURATION_SEC),
+        [&](const double val)
+        {
+            sm.SetValue(PUMPING_DURATION_SEC, val);
+        }));
+    p->Add(std::make_shared<NumberEditor>(
+        "Repeats",
+        "x", 0, 1, 1, 99,
+        sm.GetIntValue(MAX_PUMPING_REPEATS),
+        [&](const double val)
+        {
+            sm.SetValue(MAX_PUMPING_REPEATS, val);
+        }));
     p->Add(std::make_shared<NumberEditor>(
         "Seepage Time",
         "m", 0, 1, 1, 60,
@@ -32,87 +72,6 @@ void UserInterface::Init()
         [&](const double val)
         {
             sm.SetValue(SEEPAGE_DURATION_MINUTES, val);
-        }));
-    p->Add(std::make_shared<BoolEditor>(
-        "Pump Enabled",
-        sm.GetIntValue(PUMP_ENABLED) != 0,
-        [&](const bool val)
-        {
-            sm.SetValue(PUMP_ENABLED, val ? 1 : 0);
-        }));
-    p->Add(std::make_shared<NumberEditor>(
-        "Pump Impulse",
-        "s", 1, 0.1, 0.0, 5,
-        sm.GetFloatValue(PUMP_IMPULSE_SEC),
-        [&](const double val)
-        {
-            sm.SetValue(PUMP_IMPULSE_SEC, val);
-        }));
-    p->Add(std::make_shared<NumberEditor>(
-        "Pump Impulses",
-        "x", 0, 1, 1, 99,
-        sm.GetIntValue(MAX_PUMP_IMPULSES),
-        [&](const double val)
-        {
-            sm.SetValue(MAX_PUMP_IMPULSES, val);
-        }));
-    p->Add(std::make_shared<TimeEditor>(
-        "Pump Time", 
-        sm.GetIntValue(SCHEDULE_TIME_HH),
-        sm.GetIntValue(SCHEDULE_TIME_MM),
-        [&](const uint8_t hh, const uint8_t mm)
-        {
-            sm.SetValue(SCHEDULE_TIME_HH, hh);
-            sm.SetValue(SCHEDULE_TIME_MM, mm);
-        }));
-    p->Add(std::make_shared<BoolEditor>(
-        "Monday",
-        sm.GetIntValue(SCHEDULE_DAY_MO) != 0,
-        [&](const bool val)
-        {
-            sm.SetValue(SCHEDULE_DAY_MO, val ? 1 : 0);
-        }));
-    p->Add(std::make_shared<BoolEditor>(
-        "Tuesday",
-        sm.GetIntValue(SCHEDULE_DAY_TU) != 0,
-        [&](const bool val)
-        {
-            sm.SetValue(SCHEDULE_DAY_TU, val ? 1 : 0);
-        }));
-    p->Add(std::make_shared<BoolEditor>(
-        "Wednesday",
-        sm.GetIntValue(SCHEDULE_DAY_WE) != 0,
-        [&](const bool val)
-        {
-            sm.SetValue(SCHEDULE_DAY_WE, val ? 1 : 0);
-        }));
-    p->Add(std::make_shared<BoolEditor>(
-        "Thursday",
-        sm.GetIntValue(SCHEDULE_DAY_TH) != 0,
-        [&](const bool val)
-        {
-            sm.SetValue(SCHEDULE_DAY_TH, val ? 1 : 0);
-        }));
-    p->Add(std::make_shared<BoolEditor>(
-        "Friday",
-        sm.GetIntValue(SCHEDULE_DAY_FR) != 0,
-        [&](const bool val)
-        {
-            sm.SetValue(SCHEDULE_DAY_FR, val ? 1 : 0);
-        }));
-    p->Add(std::make_shared<BoolEditor>(
-        "Saturday",
-        sm.GetIntValue(SCHEDULE_DAY_SA) != 0,
-        [&](const bool val)
-        {
-            sm.SetValue(SCHEDULE_DAY_SA, val ? 1 : 0);
-        }));
-    p->Add(std::make_shared<BoolEditor>(
-        "Sunday",
-        sm.GetIntValue(SCHEDULE_DAY_SU) != 0,
-        [&](const bool val)
-        {
-            sm.SetValue(SCHEDULE_DAY_SU, val ? 1 : 0);
         }));
 
     // Settings-page
@@ -163,22 +122,26 @@ void UserInterface::Init()
         {
             sm.SetValue(SLEEP_DURATION_MINUTES, (int)val);
         }));
+
+    // MQTT-page
+    p = std::make_shared<PropertyPage>(onEditingFinished);
+    _navigator.AddPage("MQTT", p); 
     p->Add(std::make_shared<BoolEditor>(
-        "MQTT Enabled",
+        "Enabled",
         sm.GetIntValue(MQTT_ENABLED) != 0,
         [&](const bool val)
         {
             sm.SetValue(MQTT_ENABLED, val ? 1 : 0);
         }));
     p->Add(std::make_shared<StringEditor>(
-        "MQTT Server", 
+        "Server", 
         sm.GetStringValue(MQTT_SERVER), 
         [&](const std::string& val) 
         { 
             sm.SetValue(MQTT_SERVER, val);
         }));
     p->Add(std::make_shared<NumberEditor>(
-        "MQTT Port",
+        "Port",
         "", 0, 1, 0, 65535,
         sm.GetIntValue(MQTT_PORT),
         [&](const double val)
@@ -186,21 +149,21 @@ void UserInterface::Init()
             sm.SetValue(MQTT_PORT, (int)val);
         }));
     p->Add(std::make_shared<StringEditor>(
-        "MQTT User", 
+        "User", 
         sm.GetStringValue(MQTT_USER), 
         [&](const std::string& val) 
         { 
             sm.SetValue(MQTT_USER, val);
         }));
     p->Add(std::make_shared<StringEditor>(
-        "MQTT Key", 
+        "Key", 
         sm.GetStringValue(MQTT_KEY), 
         [&](const std::string& val) 
         { 
             sm.SetValue(MQTT_KEY, val);
         }));
     p->Add(std::make_shared<StringEditor>(
-        "MQTT Topic", 
+        "Topic", 
         sm.GetStringValue(MQTT_TOPIC), 
         [&](const std::string& val) 
         { 

@@ -36,45 +36,16 @@ void Scheduler::Update()
 
     if (!pumpState.active && pumpState.lastImpulseTime + 61 < now.utcTime)
     {
-        const bool validHour = sm.GetIntValue(Setting::SCHEDULE_TIME_HH) == hour(now.localTime);
-        const bool validMinute = sm.GetIntValue(Setting::SCHEDULE_TIME_MM) == minute(now.localTime);
+        const bool validHour = sm.GetIntValue(Setting::WATERING_TIME_HH) == hour(now.localTime);
+        const bool validMinute = sm.GetIntValue(Setting::WATERING_TIME_MM) == minute(now.localTime);
         const bool validTime = validHour && validMinute;
-
-        bool validDay = false;
-        switch(weekday(now.localTime))
-        {
-            case dowSunday:
-                validDay = sm.GetIntValue(Setting::SCHEDULE_DAY_SU) != 0;
-                break;
-            case dowMonday:
-                validDay = sm.GetIntValue(Setting::SCHEDULE_DAY_MO) != 0;
-                break;
-            case dowTuesday:
-                validDay = sm.GetIntValue(Setting::SCHEDULE_DAY_TU) != 0;
-                break;
-            case dowWednesday:
-                validDay = sm.GetIntValue(Setting::SCHEDULE_DAY_WE) != 0;
-                break;
-            case dowThursday:
-                validDay = sm.GetIntValue(Setting::SCHEDULE_DAY_TH) != 0;
-                break;
-            case dowFriday:
-                validDay = sm.GetIntValue(Setting::SCHEDULE_DAY_FR) != 0;
-                break;
-            case dowSaturday:
-                validDay = sm.GetIntValue(Setting::SCHEDULE_DAY_SA) != 0;
-                break;
-            case dowInvalid:
-            default:
-                break;
-        }
+        const bool validDay = elapsedDays(now.localTime) % sm.GetIntValue(Setting::WATERING_INTERVAL_DAYS) == 0;
 
         if (validTime && validDay)
         {
             pumpState.active = true;
             pumpState.numImpulses = 0;
             pumpState.lastImpulseTime = 0;
-
         }
     }
 
@@ -82,7 +53,7 @@ void Scheduler::Update()
     {
         pumpState.active &= sm.HasPendingChanges() == false;
         pumpState.active &= sm.GetIntValue(Setting::PUMP_ENABLED) != 0;
-        pumpState.active &= pumpState.numImpulses < sm.GetIntValue(Setting::MAX_PUMP_IMPULSES);
+        pumpState.active &= pumpState.numImpulses < sm.GetIntValue(Setting::MAX_PUMPING_REPEATS);
         pumpState.active &= _ctx.GetSensorMgr().States().SoilMoistureInPerCent < sm.GetIntValue(Setting::SOIL_MOISTURE_PERCENT);
     }
 
@@ -111,8 +82,8 @@ void Scheduler::GetNextWakupUtcTime(int& utcHour, int& utcMinute)
         }
     };
 
-    const long hh = sm.GetIntValue(Setting::SCHEDULE_TIME_HH);
-    const long mm = sm.GetIntValue(Setting::SCHEDULE_TIME_MM);
+    const long hh = sm.GetIntValue(Setting::WATERING_TIME_HH);
+    const long mm = sm.GetIntValue(Setting::WATERING_TIME_MM);
     const long scheduleTime = hh * SECS_PER_HOUR + mm * SECS_PER_MIN - clk.GetTimeOffset();
     updateWakeTime(previousMidnight(now.utcTime) + scheduleTime);
     updateWakeTime(nextMidnight(now.utcTime) + scheduleTime);

@@ -4,6 +4,7 @@
 #include <sstream>
 
 #define EEPROM_SIZE 512
+#define HASH_SEED 123
 
 SettingsManager::SettingsManager()
     : _pendingChanges(false)
@@ -20,10 +21,10 @@ void SettingsManager::Init()
     EEPROM.begin(EEPROM_SIZE);
     uint8_t* ptr = EEPROM.getDataPtr();
 
-    uint32_t crc = *((uint32_t*)ptr);
+    uint32_t hash = *((uint32_t*)ptr);
     ptr += sizeof(uint32_t);
-    uint32_t actualCrc = ComputeCrc(ptr, EEPROM_SIZE - sizeof(uint32_t));
-    if (crc == actualCrc)
+    uint32_t actualHash = ComputeHash(ptr, EEPROM_SIZE - sizeof(uint32_t));
+    if (hash == actualHash)
     {
         uint8_t numEntries = *ptr;
         ptr += sizeof(uint8_t);
@@ -58,28 +59,22 @@ void SettingsManager::InitDefaultValues()
 
     init(TIME_SERVER, "pool.ntp.org");
     init(TIME_OFFSET_HOURES, "1");
-    init(SCHEDULE_DAY_MO, "0");
-    init(SCHEDULE_DAY_TU, "0");
-    init(SCHEDULE_DAY_WE, "1");
-    init(SCHEDULE_DAY_TH, "0");
-    init(SCHEDULE_DAY_FR, "0");
-    init(SCHEDULE_DAY_SA, "0");
-    init(SCHEDULE_DAY_SU, "1");
-    init(SCHEDULE_TIME_HH, "12");
-    init(SCHEDULE_TIME_MM, "0");
-    init(PUMP_IMPULSE_SEC, "0.5");
-    init(MAX_PUMP_IMPULSES, "5");
+    init(WAKE_DURATION_SEC, "60");
+    init(SLEEP_DURATION_MINUTES, "60");
     init(SEEPAGE_DURATION_MINUTES, "5");
     init(SOIL_MOISTURE_PERCENT, "30");
-    init(SLEEP_DURATION_MINUTES, "60");
+    init(PUMP_ENABLED, "1");
+    init(WATERING_TIME_HH, "12");
+    init(WATERING_TIME_MM, "0");
+    init(WATERING_INTERVAL_DAYS, "1");
+    init(PUMPING_DURATION_SEC, "0.5");
+    init(MAX_PUMPING_REPEATS, "5");    
     init(MQTT_SERVER, "io.adafruit.com");
     init(MQTT_PORT, "1883");
     init(MQTT_USER, "Unknown");
     init(MQTT_KEY, "");
     init(MQTT_TOPIC, "Unknown/feeds/smartplantpot.");
     init(MQTT_ENABLED, "0");
-    init(PUMP_ENABLED, "1");
-    init(WAKE_DURATION_SEC, "60");
 
     SaveToEEPROM();
 }
@@ -102,7 +97,7 @@ void SettingsManager::SaveToEEPROM()
         uint8_t numEntries = (uint8_t)_settings.size();
         uint8_t* ptr = EEPROM.getDataPtr();
 
-        uint32_t* crcPtr = (uint32_t*)ptr;
+        uint32_t* hashPtr = (uint32_t*)ptr;
         ptr += sizeof(uint32_t);
 
         *ptr = numEntries;
@@ -119,7 +114,7 @@ void SettingsManager::SaveToEEPROM()
             ptr += it.second.size();
         }
 
-        *crcPtr = ComputeCrc(EEPROM.getDataPtr() + sizeof(uint32_t), EEPROM_SIZE - sizeof(uint32_t));
+        *hashPtr = ComputeHash(EEPROM.getDataPtr() + sizeof(uint32_t), EEPROM_SIZE - sizeof(uint32_t));
         EEPROM.commit();
         EEPROM.end();
 
@@ -177,9 +172,9 @@ void SettingsManager::SetValue(Setting key, const std::string& value)
     _pendingChanges = true;
 }
 
-uint32_t SettingsManager::ComputeCrc(void* ptr, uint32_t size)
+uint32_t SettingsManager::ComputeHash(void* ptr, uint32_t size)
 {
-    uint32_t result = 0;
+    uint32_t result = HASH_SEED;
     for (uint32_t i = 0; i < size / sizeof(uint32_t); i++)
     {
         result += ((uint32_t*)ptr)[i];

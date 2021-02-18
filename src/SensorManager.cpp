@@ -13,6 +13,9 @@ SensorManager::SensorManager() :
     _task(nullptr)
 {
     pinMode(SENSOR_VCC_PIN, OUTPUT);
+
+    gpio_set_drive_capability((gpio_num_t)SENSOR_VCC_PIN, GPIO_DRIVE_CAP_3);
+
     digitalWrite(SENSOR_VCC_PIN, HIGH);
 
     pinMode(SOIL_SENSOR_PIN, INPUT);
@@ -142,10 +145,16 @@ void SensorManager::Update()
 
     // SoilMoisture
     {
-        static const int sensor2Percent[2][2] = 
+        static const int sensor2Percent[][2] = 
         {
-            { 2660, 0 },
-            { 1270, 100 }
+            { 2960,	0 },
+            { 2266,	14 },
+            { 1815,	29 },
+            { 1585,	43 },
+            { 1462,	57 },
+            { 1382,	71 },
+            { 1330,	86 },
+            { 1290,	100 }
         };
         _sensorStates.SoilMoistureInPerCent = GetTransformedSensorValue(
             _sensorStates.SoilMoistureRaw, 
@@ -156,16 +165,17 @@ void SensorManager::Update()
     // WaterTankLevel
     {
         static const int sensor2Percent[][2] =
+        
         {
-            { 3330,	0 },
-            { 3308,	17 },
-            { 3270,	34 },
-            { 3208,	52 },
-            { 3079,	69 },
-            { 2920,	78 },
-            { 2530,	87 },
-            { 1680,	95 },
-            { 112,	100 }
+            { 3725,	0 },
+            { 3700,	17 },
+            { 3658,	34 },
+            { 3589,	52 },
+            { 3444,	69 },
+            { 3266,	78 },
+            { 2830,	87 },
+            { 1879,	95 },
+            { 125, 100 }
         };
         _sensorStates.WaterTankLevelInPerCent = GetTransformedSensorValue(
             _sensorStates.WaterTankLevelRaw, 
