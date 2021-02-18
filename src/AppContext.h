@@ -8,6 +8,7 @@
 #include "NetworkManager.h"
 #include "Scheduler.h"
 #include "MqttClient.h"
+#include "SerialInterface.h"
 
 class AppContext
 {
@@ -35,4 +36,5 @@ private:
     NetworkManager _networkMgr;
     Scheduler _scheduler;
     MqttClient _mqttClient;
+    SerialInterface _serialInterface;
 };

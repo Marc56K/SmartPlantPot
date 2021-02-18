@@ -6,6 +6,11 @@
 #define EEPROM_SIZE 512
 #define HASH_SEED 123
 
+const char* SettingNames[] =
+{
+    SETTINGS(CREATE_SETTINGS_STRINGS)
+};
+
 SettingsManager::SettingsManager()
     : _pendingChanges(false)
 {
@@ -170,6 +175,29 @@ void SettingsManager::SetValue(Setting key, const std::string& value)
     memcpy(val.data(), value.c_str(), value.length());
     _settings[key] = val;
     _pendingChanges = true;
+}
+
+bool SettingsManager::SetValue(const std::string& key, const std::string& value)
+{
+    for (int i = 0; i < Setting::NUM_SETTINGS; ++i)
+    {
+        if (key == SettingNames[i])
+        {
+            SetValue((Setting)i, value);
+            return true;
+        }
+    }
+    return false;
+}
+
+std::map<std::string, std::string> SettingsManager::GetKeyValuesAsString()
+{
+    std::map<std::string, std::string> result;
+    for (int i = 0; i < Setting::NUM_SETTINGS; ++i)
+    {
+        result[SettingNames[i]] = GetStringValue((Setting)i);
+    }
+    return result;
 }
 
 uint32_t SettingsManager::ComputeHash(void* ptr, uint32_t size)

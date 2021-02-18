@@ -5,29 +5,34 @@
 #include <vector>
 #include <string>
 
+#define SETTINGS(setting) \
+    setting(WIFI_SSID) \
+    setting(WIFI_KEY) \
+    setting(TIME_SERVER) \
+    setting(TIME_OFFSET_HOURES) \
+    setting(WAKE_DURATION_SEC) \
+    setting(SLEEP_DURATION_MINUTES) \
+    setting(SEEPAGE_DURATION_MINUTES) \
+    setting(SOIL_MOISTURE_PERCENT) \
+    setting(PUMP_ENABLED) \
+    setting(WATERING_TIME_HH) \
+    setting(WATERING_TIME_MM) \
+    setting(WATERING_INTERVAL_DAYS) \
+    setting(PUMPING_DURATION_SEC) \
+    setting(MAX_PUMPING_REPEATS) \
+    setting(MQTT_ENABLED) \
+    setting(MQTT_SERVER) \
+    setting(MQTT_PORT) \
+    setting(MQTT_USER) \
+    setting(MQTT_KEY) \
+    setting(MQTT_TOPIC) \
+    setting(NUM_SETTINGS)
+
+#define CREATE_SETTINGS_ENUM(name) name,
+#define CREATE_SETTINGS_STRINGS(name) #name,
 enum Setting : uint8_t
-{
-    WIFI_SSID = 0,
-    WIFI_KEY,
-    TIME_SERVER,
-    TIME_OFFSET_HOURES,
-    WAKE_DURATION_SEC,
-    SLEEP_DURATION_MINUTES,
-    SEEPAGE_DURATION_MINUTES,
-    SOIL_MOISTURE_PERCENT,   
-    PUMP_ENABLED,
-    WATERING_TIME_HH,
-    WATERING_TIME_MM,
-    WATERING_INTERVAL_DAYS,
-    PUMPING_DURATION_SEC,
-    MAX_PUMPING_REPEATS, 
-    MQTT_ENABLED,
-    MQTT_SERVER,
-    MQTT_PORT,
-    MQTT_USER,
-    MQTT_KEY,
-    MQTT_TOPIC,
-    NUM_SETTINGS
+{ 
+    SETTINGS(CREATE_SETTINGS_ENUM)
 };
 
 class SettingsManager
@@ -48,6 +53,9 @@ public:
     std::string GetStringValue(Setting key);
     void SetValue(Setting key, float value);
     void SetValue(Setting key, const std::string& value);
+    bool SetValue(const std::string& key, const std::string& value);
+
+    std::map<std::string, std::string> GetKeyValuesAsString();
 
 private:
     void InitDefaultValues();

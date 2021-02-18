@@ -76,7 +76,7 @@ void InputManager::EncoderIsrTaskProc()
                         _encoderDelta += delta;
                     }
                     xSemaphoreGive(_mutex); 
-                    Serial.println(String("RAW ENC: ") + deltaT + " - > " + delta);
+                    //Serial.println(String("RAW ENC: ") + deltaT + " - > " + delta);
                 }
             }
         }

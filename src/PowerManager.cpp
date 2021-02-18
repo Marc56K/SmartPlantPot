@@ -85,7 +85,7 @@ bool PowerManager::DeepSleepRequested()
     return _deepSleepRequested;
 }
 
-void PowerManager::StartPumpImpulse()
+void PowerManager::StartPumping()
 {
     pumpDuration = 1000 * _ctx.GetSettingsMgr().GetFloatValue(Setting::PUMPING_DURATION_SEC);
     
