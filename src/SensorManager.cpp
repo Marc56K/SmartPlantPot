@@ -9,6 +9,9 @@ SensorManager::SensorManager() :
     _created(millis())
 {
     pinMode(SENSOR_VCC_PIN, OUTPUT);
+
+    gpio_set_drive_capability((gpio_num_t)SENSOR_VCC_PIN, GPIO_DRIVE_CAP_3);
+
     digitalWrite(SENSOR_VCC_PIN, HIGH);
 
     pinMode(SOIL_SENSOR_PIN, INPUT);

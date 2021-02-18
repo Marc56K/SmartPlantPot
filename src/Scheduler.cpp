@@ -83,7 +83,7 @@ void Scheduler::Update()
         pumpState.active &= sm.HasPendingChanges() == false;
         pumpState.active &= sm.GetIntValue(Setting::PUMP_ENABLED) != 0;
         pumpState.active &= pumpState.numImpulses < sm.GetIntValue(Setting::MAX_PUMP_IMPULSES);
-        pumpState.active &= _ctx.GetSensorMgr().GetSoilMoisture() < sm.GetIntValue(Setting::SOIL_MOISTURE_PERCENT);
+        pumpState.active &= _ctx.GetSensorMgr().GetSoilMoisture() <= sm.GetIntValue(Setting::SOIL_MOISTURE_PERCENT);
     }
 
     auto seepage = sm.GetIntValue(Setting::SEEPAGE_DURATION_MINUTES) * 60;
