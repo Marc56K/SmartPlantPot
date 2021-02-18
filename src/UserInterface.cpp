@@ -1,6 +1,7 @@
 #include "UserInterface.h"
 #include "HomePage.h"
 #include "InfoPage.h"
+#include "ActionButton.h"
 
 UserInterface::UserInterface(AppContext& ctx) :
     _ctx(ctx)
@@ -14,16 +15,32 @@ UserInterface::~UserInterface()
 void UserInterface::Init()
 {
     _inputMgr.Init();
-
     _display.Init();
 
     // home-page
     _navigator.AddPage("", std::make_shared<HomePage>(_ctx));
 
-    // Schedule-page
+    // actions-page
+    auto p = std::make_shared<PropertyPage>();
+    _navigator.AddPage("Actions", p);
+    p->Add(std::make_shared<ActionButton>(
+        "Give some water",
+        [&]()
+        {
+            _ctx.GetPowerMgr().RunWaterPump();
+        }));
+    p->Add(std::make_shared<ActionButton>(
+        "Got to sleep",
+        [&]()
+        {
+            _navigator.SetCurrentPage(0);
+            _ctx.GetPowerMgr().RequestDeepSleep();
+        }));
+
+    // watering-page
     auto& sm = _ctx.GetSettingsMgr();
     auto onEditingFinished = [&]() { sm.SaveToEEPROM(); };
-    auto p = std::make_shared<PropertyPage>(onEditingFinished);
+    p = std::make_shared<PropertyPage>(onEditingFinished);
     _navigator.AddPage("Watering", p);
     p->Add(std::make_shared<BoolEditor>(
         "Enabled",
@@ -74,7 +91,7 @@ void UserInterface::Init()
             sm.SetValue(SEEPAGE_DURATION_MINUTES, val);
         }));
 
-    // Settings-page
+    // settings-page
     p = std::make_shared<PropertyPage>(onEditingFinished);
     _navigator.AddPage("Settings", p); 
     p->Add(std::make_shared<StringEditor>(
@@ -176,14 +193,18 @@ void UserInterface::Init()
 
 void UserInterface::Update()
 {
+    auto& pm = _ctx.GetPowerMgr();
+    auto& sm = _ctx.GetSensorMgr();
+    auto& nm = _ctx.GetNetworkMgr();
+
     // handle input
 
-    if (!_ctx.GetPowerMgr().DeepSleepRequested())
+    if (!pm.DeepSleepRequested())
     {
         auto btnPressed = _inputMgr.ButtonPressed();
         auto encoderDelta = _inputMgr.GetRotaryEncoderDelta();
 
-        if (_ctx.GetPowerMgr().GetMillisSinceLastPumpImpulse() > 2000)
+        if (pm.GetMillisSinceLastPumping() > 2000)
         {
             if (btnPressed)
             {
@@ -197,7 +218,7 @@ void UserInterface::Update()
 
             if (btnPressed || encoderDelta != 0)
             {
-                _ctx.GetPowerMgr().ResetAutoSleepTimer(true);
+                pm.ResetAutoSleepTimer(true);
             }
         }
     }
@@ -207,16 +228,19 @@ void UserInterface::Update()
     }
 
     // update display
+    
+    if (pm.DeepSleepRequested() || pm.GetMillisSinceLastPumping() > 0)
+    {
+        _display.RenderNavigator(_navigator);
+        _display.RenderStatusBar(
+            sm.States().BatVoltage,
+            sm.States().WaterTankLevelInPerCent,
+            pm.DeepSleepRequested() == false,
+            nm.WifiConnected());
+        _display.Present();
+    }
 
-    _display.RenderNavigator(_navigator);
-    _display.RenderStatusBar(
-        _ctx.GetSensorMgr().States().BatVoltage,
-        _ctx.GetSensorMgr().States().WaterTankLevelInPerCent,
-        _ctx.GetPowerMgr().DeepSleepRequested() == false,
-        _ctx.GetNetworkMgr().WifiConnected());
-    _display.Present();
-
-    if (_ctx.GetPowerMgr().DeepSleepRequested())
+    if (pm.DeepSleepRequested())
     {
         _display.Sleep();
     }

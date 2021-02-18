@@ -20,12 +20,16 @@ public:
     void Update();
 
     UserInterface& GetUserInterface();
+    SerialInterface& GetSerialInterface();
     RTClock& GetClock();
     SettingsManager& GetSettingsMgr();
     SensorManager& GetSensorMgr();
     PowerManager& GetPowerMgr();
     NetworkManager& GetNetworkMgr();
     Scheduler& GetScheduler();
+
+    void SetDebugMessage(const String& msg);
+    const String& GetDebugMessage();
 
 private:
     UserInterface _userInterface;
@@ -37,4 +41,5 @@ private:
     Scheduler _scheduler;
     MqttClient _mqttClient;
     SerialInterface _serialInterface;
+    String _debugMessage;
 };

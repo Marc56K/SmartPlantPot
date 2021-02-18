@@ -1,7 +1,8 @@
 #include "SerialInterface.h"
 #include "AppContext.h"
 
-SerialInterface::SerialInterface(AppContext &ctx) : _ctx(ctx)
+SerialInterface::SerialInterface(AppContext &ctx) :
+    _ctx(ctx)
 {
 }
 
@@ -16,6 +17,7 @@ void SerialInterface::Init()
 
 void SerialInterface::Update()
 {
+    /*
     String cmd, arg;
     while (ReadInput(cmd, arg))
     {
@@ -35,13 +37,13 @@ void SerialInterface::Update()
         }
         else if (cmd == "runpump")
         {
-            _ctx.GetPowerMgr().StartPumping();
+            _ctx.GetPowerMgr().RunWaterPump();
         }
         else
         {
             PrintHelp();
         }
-    }
+    }*/
 }
 
 void SerialInterface::PrintHelp()
@@ -70,6 +72,8 @@ void SerialInterface::PrintSettings()
 
 bool SerialInterface::ReadInput(String &cmd, String &arg)
 {
+    cmd = "";
+    arg = "";
     String buff = "";
     while (Serial.available())
     {
@@ -85,15 +89,12 @@ bool SerialInterface::ReadInput(String &cmd, String &arg)
 
     buff.trim();
 
-    if (buff.length() == 0)
+    if (buff.length() > 0)
     {
-        cmd = "";
-        arg = "";
-        return false;
+        SplitKeyValue(buff, " ", cmd, arg);
     }
 
-    SplitKeyValue(buff, " ", cmd, arg);
-    return true;
+    return cmd.length() > 0;
 }
 
 void SerialInterface::SetSetting(const String& arg)

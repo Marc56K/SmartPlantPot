@@ -20,16 +20,19 @@ public:
     void RequestDeepSleep();
     bool DeepSleepRequested();
 
-    void StartPumping();
-    void StopPumpImpulse();
-    unsigned long GetMillisSinceLastPumpImpulse();
+    void RunWaterPump();
+    uint32_t GetMillisSinceLastPumping();
 
     void Update();
 
 private:
+    void PumpProc();
+
+private:
     AppContext& _ctx;
-    unsigned long _sleepTime;
+    uint32_t _sleepTime;
     bool _deepSleepRequested;
-    unsigned long _pumpUntil;
+    uint32_t _pumpDuration;
+    uint32_t _pumpUntil;
     esp_sleep_wakeup_cause_t _wakeupCause;
 };

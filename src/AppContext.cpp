@@ -45,6 +45,11 @@ UserInterface& AppContext::GetUserInterface()
     return _userInterface;
 }
 
+SerialInterface& AppContext::GetSerialInterface()
+{
+    return _serialInterface;
+}
+
 RTClock& AppContext::GetClock()
 {
     return _clock;
@@ -73,4 +78,14 @@ NetworkManager& AppContext::GetNetworkMgr()
 Scheduler& AppContext::GetScheduler()
 {
     return _scheduler;
+}
+
+void AppContext::SetDebugMessage(const String& msg)
+{
+    _debugMessage = msg;
+}
+
+const String& AppContext::GetDebugMessage()
+{
+    return _debugMessage;
 }

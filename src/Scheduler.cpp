@@ -26,7 +26,7 @@ void Scheduler::Init()
 
 void Scheduler::Update()
 {
-    if (_ctx.GetPowerMgr().GetMillisSinceLastPumpImpulse() == 0)
+    if (_ctx.GetPowerMgr().GetMillisSinceLastPumping() == 0)
     {
         return;
     }
@@ -60,7 +60,7 @@ void Scheduler::Update()
     auto seepage = sm.GetIntValue(Setting::SEEPAGE_DURATION_MINUTES) * 60;
     if (pumpState.active && (pumpState.numImpulses == 0 || pumpState.lastImpulseTime + seepage <= now.utcTime))
     {
-        _ctx.GetPowerMgr().StartPumping();
+        _ctx.GetPowerMgr().RunWaterPump();
         pumpState.numImpulses++;
         pumpState.lastImpulseTime = now.utcTime;
     }

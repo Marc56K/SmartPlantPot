@@ -7,12 +7,11 @@
 #define uS_TO_S_FACTOR 1000000ULL
 #define WAKE_TIME_AFTER_ALERT 10
 
-volatile long pumpDuration = 0;
-
 PowerManager::PowerManager(AppContext& ctx) :
     _ctx(ctx),
-    _sleepTime(-1),
+    _sleepTime(std::numeric_limits<uint32_t>::max()),
     _deepSleepRequested(false),
+    _pumpDuration(0),
     _pumpUntil(0)
 {
     _wakeupCause = esp_sleep_get_wakeup_cause();
@@ -85,31 +84,37 @@ bool PowerManager::DeepSleepRequested()
     return _deepSleepRequested;
 }
 
-void PowerManager::StartPumping()
+void PowerManager::RunWaterPump()
 {
-    pumpDuration = 1000 * _ctx.GetSettingsMgr().GetFloatValue(Setting::PUMPING_DURATION_SEC);
+    _pumpDuration = 1000 * _ctx.GetSettingsMgr().GetFloatValue(Setting::PUMPING_DURATION_SEC);
     
     xTaskCreatePinnedToCore(
       [](void* p)
       {
-          digitalWrite(PUMP_VCC_PIN, HIGH);
-          vTaskDelay(pumpDuration / portTICK_PERIOD_MS);
-          digitalWrite(PUMP_VCC_PIN, LOW);
-          vTaskDelete(nullptr);
+          static_cast<PowerManager*>(p)->PumpProc();
       },
       "PumpRunner", /* Name of the task */
       10000,  /* Stack size in words */
-      nullptr,  /* Task input parameter */
+      this,  /* Task input parameter */
       1,  /* Priority of the task */
       nullptr,  /* Task handle. */
       0); /* Core where the task should run */
     
-    _pumpUntil = millis() + pumpDuration;
+    _pumpUntil = millis() + _pumpDuration;
 }
 
-unsigned long PowerManager::GetMillisSinceLastPumpImpulse()
+void PowerManager::PumpProc()
 {
-    auto now = millis();
+    digitalWrite(PUMP_VCC_PIN, HIGH);
+    vTaskDelay(_pumpDuration / portTICK_PERIOD_MS);
+    digitalWrite(PUMP_VCC_PIN, LOW);
+
+    vTaskDelete(nullptr);
+}
+
+uint32_t PowerManager::GetMillisSinceLastPumping()
+{
+    uint32_t now = millis();
     if (now < _pumpUntil)
     {
         return 0;

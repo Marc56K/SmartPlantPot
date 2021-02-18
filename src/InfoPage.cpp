@@ -23,7 +23,11 @@ void InfoPage::Render(Paint& paint, const int x, const int y)
     lines.push_back(std::string("TEMP: ") + String(s.Temperature).c_str());    
     lines.push_back(std::string("SOIL: ") + String(s.SoilMoistureRaw).c_str() + " (" + String(s.SoilMoistureInPerCent).c_str() + "%)");
     lines.push_back(std::string("TANK: ") + String(s.WaterTankLevelRaw).c_str() + " (" + String(s.WaterTankLevelInPerCent).c_str() + "%)");
-    
+
+    if (!_ctx.GetDebugMessage().isEmpty())
+    {
+        lines.push_back(std::string("DEBUG: ") + _ctx.GetDebugMessage().c_str());
+    }
 
     TextPage::Render(paint, x, y);
 }
