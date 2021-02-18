@@ -30,7 +30,7 @@ void UserInterface::Init()
             _ctx.GetPowerMgr().RunWaterPump();
         }));
     p->Add(std::make_shared<ActionButton>(
-        "Got to sleep",
+        "Go to sleep",
         [&]()
         {
             _navigator.SetCurrentPage(0);
