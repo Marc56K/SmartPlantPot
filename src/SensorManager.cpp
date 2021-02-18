@@ -46,12 +46,18 @@ float SensorManager::GetBatVoltage()
 
 int SensorManager::GetSoilMoisture()
 {
-    static const int sensor2Percent[2][2] = 
+    static const int sensor2Percent[8][2] = 
     {
-         { 2660, 0 },
-         { 1270, 100 }
+        { 2960,	0 },
+        { 2266,	14 },
+        { 1815,	29 },
+        { 1585,	43 },
+        { 1462,	57 },
+        { 1382,	71 },
+        { 1330,	86 },
+        { 1270,	100 }
     };
-    return GetTransformedSensorValue(GetSensorValueMedian(SOIL_SENSOR_PIN, 11), sensor2Percent, 2);
+    return GetTransformedSensorValue(GetSensorValueMedian(SOIL_SENSOR_PIN, 11), sensor2Percent, 8);
 }
 
 int SensorManager::GetWaterTankLevel()
