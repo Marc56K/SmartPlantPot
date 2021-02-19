@@ -6,7 +6,6 @@
 #define INIT_DURATION_MILLIS 500
 
 SensorManager::SensorManager() :
-    _created(millis()),    
     _mutex(nullptr),
     _shutdownRequested(nullptr),
     _shutdownCompleted(nullptr),
@@ -18,7 +17,6 @@ SensorManager::SensorManager() :
 
     pinMode(SOIL_SENSOR_PIN, INPUT);
     pinMode(TANK_SENSOR_PIN, INPUT);
-
     pinMode(BAT_LEVEL_PIN, INPUT);
 }
 
@@ -42,6 +40,14 @@ SensorManager::~SensorManager()
 
 void SensorManager::Init()
 {
+    // wait for sensors to startup
+    delay(100);
+
+    // read each input once to prevent garbage on first access
+    analogRead(SOIL_SENSOR_PIN);
+    analogRead(TANK_SENSOR_PIN);
+    analogRead(BAT_LEVEL_PIN);
+
     _sensorStates.IsValid = false;
 
     _mutex = xSemaphoreCreateRecursiveMutex();
@@ -68,16 +74,6 @@ void SensorManager::Init()
       1,  /* Priority of the task */
       &_task,  /* Task handle. */
       0); /* Core where the task should run */
-
-    const auto now = millis();
-    const auto delta = now - _created;
-    const auto waitTime = delta > INIT_DURATION_MILLIS ? 0 : INIT_DURATION_MILLIS - delta;
-
-    if (waitTime > 0)
-    {
-        // moisture sensor need some time to deliver valid values
-        vTaskDelay(waitTime / portTICK_PERIOD_MS);
-    }
 }
 
 void SensorManager::ReadAnalogPins()

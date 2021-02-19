@@ -42,7 +42,6 @@ private:
         const int mapSize);
 
 private:
-    unsigned long _created;    
     SemaphoreHandle_t _mutex;
     EventGroupHandle_t _shutdownRequested;
     EventGroupHandle_t _shutdownCompleted;
