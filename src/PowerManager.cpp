@@ -3,6 +3,7 @@
 #include "AppContext.h"
 #include <esp_wifi.h>
 #include <esp_adc_cal.h>
+#include <analogWrite.h>
 
 #define uS_TO_S_FACTOR 1000000ULL
 #define WAKE_TIME_AFTER_ALERT 10
@@ -11,6 +12,7 @@ PowerManager::PowerManager(AppContext& ctx) :
     _ctx(ctx),
     _sleepTime(std::numeric_limits<uint32_t>::max()),
     _deepSleepRequested(false),
+    _pumpPower(25),
     _pumpDuration(0),
     _pumpUntil(0)
 {
@@ -86,6 +88,7 @@ bool PowerManager::DeepSleepRequested()
 
 void PowerManager::RunWaterPump()
 {
+    _pumpPower = _ctx.GetSettingsMgr().GetIntValue(Setting::PUMPING_POWER_PERCENT);
     _pumpDuration = 1000 * _ctx.GetSettingsMgr().GetFloatValue(Setting::PUMPING_DURATION_SEC);
     
     xTaskCreatePinnedToCore(
@@ -105,11 +108,16 @@ void PowerManager::RunWaterPump()
 
 void PowerManager::PumpProc()
 {
-    digitalWrite(PUMP_VCC_PIN, HIGH);
+    analogWrite(PUMP_VCC_PIN, std::min(_pumpPower, 100u), 100u);
     vTaskDelay(_pumpDuration / portTICK_PERIOD_MS);
-    digitalWrite(PUMP_VCC_PIN, LOW);
+    analogWrite(PUMP_VCC_PIN, 0);
 
     vTaskDelete(nullptr);
+}
+
+bool PowerManager::WaterPumpIsRunning()
+{
+    return GetMillisSinceLastPumping() == 0;
 }
 
 uint32_t PowerManager::GetMillisSinceLastPumping()

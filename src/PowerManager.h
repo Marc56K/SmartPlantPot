@@ -21,6 +21,7 @@ public:
     bool DeepSleepRequested();
 
     void RunWaterPump();
+    bool WaterPumpIsRunning();
     uint32_t GetMillisSinceLastPumping();
 
     void Update();
@@ -32,6 +33,7 @@ private:
     AppContext& _ctx;
     uint32_t _sleepTime;
     bool _deepSleepRequested;
+    uint32_t _pumpPower;
     uint32_t _pumpDuration;
     uint32_t _pumpUntil;
     esp_sleep_wakeup_cause_t _wakeupCause;

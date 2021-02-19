@@ -67,7 +67,15 @@ void UserInterface::Init()
             sm.SetValue(WATERING_TIME_MM, mm);
         }));
     p->Add(std::make_shared<NumberEditor>(
-        "Pumping",
+        "Power",
+        "%", 0, 1, 1, 100,
+        sm.GetIntValue(PUMPING_POWER_PERCENT),
+        [&](const double val)
+        {
+            sm.SetValue(PUMPING_POWER_PERCENT, val);
+        }));
+    p->Add(std::make_shared<NumberEditor>(
+        "Duration",
         "s", 1, 0.1, 0.0, 5,
         sm.GetFloatValue(PUMPING_DURATION_SEC),
         [&](const double val)
@@ -236,7 +244,7 @@ void UserInterface::Update()
 
     // update display
     
-    if (pm.DeepSleepRequested() || pm.GetMillisSinceLastPumping() > 0)
+    if (pm.DeepSleepRequested() || !pm.WaterPumpIsRunning())
     {
         _display.RenderNavigator(_navigator);
         _display.RenderStatusBar(

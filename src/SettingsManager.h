@@ -19,6 +19,7 @@
     setting(WATERING_TIME_MM) \
     setting(WATERING_INTERVAL_DAYS) \
     setting(PUMPING_DURATION_SEC) \
+    setting(PUMPING_POWER_PERCENT) \
     setting(MAX_PUMPING_REPEATS) \
     setting(MQTT_ENABLED) \
     setting(MQTT_SERVER) \

@@ -4,7 +4,7 @@
 #include <sstream>
 
 #define EEPROM_SIZE 512
-#define HASH_SEED 123
+#define HASH_SEED 124
 
 const char* SettingNames[] =
 {
@@ -72,8 +72,9 @@ void SettingsManager::InitDefaultValues()
     init(WATERING_TIME_HH, "12");
     init(WATERING_TIME_MM, "0");
     init(WATERING_INTERVAL_DAYS, "1");
-    init(PUMPING_DURATION_SEC, "0.5");
-    init(MAX_PUMPING_REPEATS, "5");    
+    init(PUMPING_DURATION_SEC, "1.0");
+    init(PUMPING_POWER_PERCENT, "75");
+    init(MAX_PUMPING_REPEATS, "5");
     init(MQTT_SERVER, "io.adafruit.com");
     init(MQTT_PORT, "1883");
     init(MQTT_USER, "Unknown");
