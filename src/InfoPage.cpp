@@ -15,7 +15,7 @@ void InfoPage::Render(Paint& paint, const int x, const int y)
     auto& s = _ctx.GetSensorMgr().States();
     auto& lines = Lines();
     lines.clear();
-    lines.push_back(std::string("WAKE: ") + String(_ctx.GetPowerMgr().GetTimeUntilSleep()).c_str() + "s");    
+    lines.push_back(std::string("WAKE: ") + String(_ctx.GetPowerMgr().GetSecondsUntilSleep()).c_str() + "s");    
     lines.push_back(std::string("DATE: ") + now.GetDate(false).c_str());
     lines.push_back(std::string("WDAY: ") + now.GetWDay(false).c_str());
     lines.push_back(std::string("TIME: ") + now.GetTime(false).c_str());

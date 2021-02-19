@@ -12,6 +12,7 @@ public:
     void Update();
 
 private:
+    bool IsEnabled();
     void PrintHelp();
     void PrintSettings();
     bool ReadInput(String &cmd, String &arg);
@@ -20,4 +21,5 @@ private:
 
 private:
     AppContext& _ctx;
+    int _lastRemainingSeconds;
 };

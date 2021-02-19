@@ -70,7 +70,7 @@ void PowerManager::ResetAutoSleepTimer(const bool causedByUserInput)
     }
 }
 
-int PowerManager::GetTimeUntilSleep()
+int PowerManager::GetSecondsUntilSleep()
 {
     const int now = millis();
     return max<int>(_sleepTime - now, 0) / 1000;
@@ -139,7 +139,7 @@ void PowerManager::Update()
 
     if (!DeepSleepRequested())
     {
-        if (GetTimeUntilSleep() == 0)
+        if (GetSecondsUntilSleep() == 0)
         {
             RequestDeepSleep();
         }

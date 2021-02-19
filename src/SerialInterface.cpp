@@ -2,7 +2,7 @@
 #include "AppContext.h"
 
 SerialInterface::SerialInterface(AppContext &ctx) :
-    _ctx(ctx)
+    _ctx(ctx), _lastRemainingSeconds(-1)
 {
 }
 
@@ -12,16 +12,24 @@ SerialInterface::~SerialInterface()
 
 void SerialInterface::Init()
 {
-    if (_ctx.GetSettingsMgr().GetIntValue(Setting::SERIAL_INPUT_ENABLED) != 0)
+    if (IsEnabled())
     {
+        Serial.println("serial interface is enabled!");
         PrintHelp();
     }
 }
 
 void SerialInterface::Update()
 {
-    if (_ctx.GetSettingsMgr().GetIntValue(Setting::SERIAL_INPUT_ENABLED) != 0)
+    if (IsEnabled())
     {
+        const auto s = _ctx.GetPowerMgr().GetSecondsUntilSleep();
+        if (_lastRemainingSeconds != s && s <= 10)
+        {
+            Serial.println(String("sleeping in ") + s + "s");
+        }
+        _lastRemainingSeconds = s;
+
         String cmd, arg;
         if (ReadInput(cmd, arg))
         {
@@ -41,6 +49,14 @@ void SerialInterface::Update()
             {
                 _ctx.GetPowerMgr().RunWaterPump();
             }
+            else if (cmd == "restart")
+            {
+                ESP.restart();
+            }
+            else if (cmd == "sleep")
+            {
+                _ctx.GetPowerMgr().RequestDeepSleep();
+            }
             else if (cmd == "help")
             {
                 PrintHelp();
@@ -55,6 +71,11 @@ void SerialInterface::Update()
     }
 }
 
+bool SerialInterface::IsEnabled()
+{
+    return _ctx.GetSettingsMgr().GetIntValue(Setting::SERIAL_INPUT_ENABLED) != 0;
+}
+
 void SerialInterface::PrintHelp()
 {
     Serial.println(F("*************************************************************"));
@@ -62,8 +83,9 @@ void SerialInterface::PrintHelp()
     Serial.println(F("  help      : prints this message"));
     Serial.println(F("  settings  : prints current settings"));
     Serial.println(F("  set       : change setting (e.g set WIFI_SSID=My WiFi)"));
-    Serial.println(F("  save      : write settings to EEPROM"));
     Serial.println(F("  runpump   : runs the pump now"));
+    Serial.println(F("  restart   : restart ESP"));
+    Serial.println(F("  sleep     : enter deep-sleep mode"));
     Serial.println(F("*************************************************************"));
 }
 
@@ -124,6 +146,7 @@ void SerialInterface::SetSetting(const String& arg)
         if (_ctx.GetSettingsMgr().SetValue(key.c_str(), value.c_str()))
         {
             Serial.println(String("") + key.c_str() + "=" + value.c_str());
+            _ctx.GetSettingsMgr().SaveToEEPROM();
         }
         else
         {

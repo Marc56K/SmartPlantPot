@@ -15,7 +15,7 @@ public:
     void PrintWakeupCause();
 
     void ResetAutoSleepTimer(const bool causedByUserInput);
-    int GetTimeUntilSleep();
+    int GetSecondsUntilSleep();
 
     void RequestDeepSleep();
     bool DeepSleepRequested();
