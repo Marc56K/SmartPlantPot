@@ -3,20 +3,14 @@
 #include <DS3232RTC.h>
 #include <algorithm>
 
-#define INIT_DURATION_MILLIS 1500
-
-SensorManager::SensorManager() :
-    _created(millis())
+SensorManager::SensorManager()
 {
     pinMode(SENSOR_VCC_PIN, OUTPUT);
-
     gpio_set_drive_capability((gpio_num_t)SENSOR_VCC_PIN, GPIO_DRIVE_CAP_3);
-
     digitalWrite(SENSOR_VCC_PIN, HIGH);
 
     pinMode(SOIL_SENSOR_PIN, INPUT);
     pinMode(TANK_SENSOR_PIN, INPUT);
-
     pinMode(BAT_LEVEL_PIN, INPUT);
 }
 
@@ -27,15 +21,13 @@ SensorManager::~SensorManager()
 
 void SensorManager::Init()
 {
-    const auto now = millis();
-    const auto delta = now - _created;
-    const auto waitTime = delta > INIT_DURATION_MILLIS ? 0 : INIT_DURATION_MILLIS - delta;
+    // wait for sensors to startup
+    delay(100);
 
-    if (waitTime > 0)
-    {
-        // moisture sensor need some time to deliver valid values
-        vTaskDelay(waitTime / portTICK_PERIOD_MS);
-    }
+    // read each input once to reduce invalid values
+    analogRead(SOIL_SENSOR_PIN);
+    analogRead(TANK_SENSOR_PIN);
+    analogRead(BAT_LEVEL_PIN);
 }
 
 float SensorManager::GetBatVoltage()
@@ -57,7 +49,8 @@ int SensorManager::GetSoilMoisture()
         { 1330,	86 },
         { 1270,	100 }
     };
-    return GetTransformedSensorValue(GetSensorValueMedian(SOIL_SENSOR_PIN, 11), sensor2Percent, 8);
+
+    return GetTransformedSensorValue(GetSensorValueMedian(SOIL_SENSOR_PIN, 11), sensor2Percent, 8);;
 }
 
 int SensorManager::GetWaterTankLevel()
