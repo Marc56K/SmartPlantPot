@@ -3,7 +3,7 @@
 #include <DS3232RTC.h>
 #include <algorithm>
 
-#define INIT_DURATION_MILLIS 500
+#define INIT_DURATION_MILLIS 1500
 
 SensorManager::SensorManager() :
     _created(millis())
