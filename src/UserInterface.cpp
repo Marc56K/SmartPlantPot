@@ -91,6 +91,53 @@ void UserInterface::Init()
             sm.SetValue(SEEPAGE_DURATION_MINUTES, val);
         }));
 
+    // MQTT-page
+    p = std::make_shared<PropertyPage>(onEditingFinished);
+    _navigator.AddPage("MQTT", p); 
+    p->Add(std::make_shared<BoolEditor>(
+        "Enabled",
+        sm.GetIntValue(MQTT_ENABLED) != 0,
+        [&](const bool val)
+        {
+            sm.SetValue(MQTT_ENABLED, val ? 1 : 0);
+        }));
+    p->Add(std::make_shared<StringEditor>(
+        "Server", 
+        sm.GetStringValue(MQTT_SERVER), 
+        [&](const std::string& val) 
+        { 
+            sm.SetValue(MQTT_SERVER, val);
+        }));
+    p->Add(std::make_shared<NumberEditor>(
+        "Port",
+        "", 0, 1, 0, 65535,
+        sm.GetIntValue(MQTT_PORT),
+        [&](const double val)
+        {
+            sm.SetValue(MQTT_PORT, (int)val);
+        }));
+    p->Add(std::make_shared<StringEditor>(
+        "User", 
+        sm.GetStringValue(MQTT_USER), 
+        [&](const std::string& val) 
+        { 
+            sm.SetValue(MQTT_USER, val);
+        }));
+    p->Add(std::make_shared<StringEditor>(
+        "Key", 
+        sm.GetStringValue(MQTT_KEY), 
+        [&](const std::string& val) 
+        { 
+            sm.SetValue(MQTT_KEY, val);
+        }));
+    p->Add(std::make_shared<StringEditor>(
+        "Topic", 
+        sm.GetStringValue(MQTT_TOPIC), 
+        [&](const std::string& val) 
+        { 
+            sm.SetValue(MQTT_TOPIC, val);
+        }));
+
     // settings-page
     p = std::make_shared<PropertyPage>(onEditingFinished);
     _navigator.AddPage("Settings", p); 
@@ -139,52 +186,12 @@ void UserInterface::Init()
         {
             sm.SetValue(SLEEP_DURATION_MINUTES, (int)val);
         }));
-
-    // MQTT-page
-    p = std::make_shared<PropertyPage>(onEditingFinished);
-    _navigator.AddPage("MQTT", p); 
     p->Add(std::make_shared<BoolEditor>(
-        "Enabled",
-        sm.GetIntValue(MQTT_ENABLED) != 0,
+        "Serial Input",
+        sm.GetIntValue(SERIAL_INPUT_ENABLED) != 0,
         [&](const bool val)
         {
-            sm.SetValue(MQTT_ENABLED, val ? 1 : 0);
-        }));
-    p->Add(std::make_shared<StringEditor>(
-        "Server", 
-        sm.GetStringValue(MQTT_SERVER), 
-        [&](const std::string& val) 
-        { 
-            sm.SetValue(MQTT_SERVER, val);
-        }));
-    p->Add(std::make_shared<NumberEditor>(
-        "Port",
-        "", 0, 1, 0, 65535,
-        sm.GetIntValue(MQTT_PORT),
-        [&](const double val)
-        {
-            sm.SetValue(MQTT_PORT, (int)val);
-        }));
-    p->Add(std::make_shared<StringEditor>(
-        "User", 
-        sm.GetStringValue(MQTT_USER), 
-        [&](const std::string& val) 
-        { 
-            sm.SetValue(MQTT_USER, val);
-        }));
-    p->Add(std::make_shared<StringEditor>(
-        "Key", 
-        sm.GetStringValue(MQTT_KEY), 
-        [&](const std::string& val) 
-        { 
-            sm.SetValue(MQTT_KEY, val);
-        }));
-    p->Add(std::make_shared<StringEditor>(
-        "Topic", 
-        sm.GetStringValue(MQTT_TOPIC), 
-        [&](const std::string& val) 
-        { 
-            sm.SetValue(MQTT_TOPIC, val);
+            sm.SetValue(SERIAL_INPUT_ENABLED, val ? 1 : 0);
         }));
 
     // info-page

@@ -12,49 +12,58 @@ SerialInterface::~SerialInterface()
 
 void SerialInterface::Init()
 {
-    PrintHelp();
+    if (_ctx.GetSettingsMgr().GetIntValue(Setting::SERIAL_INPUT_ENABLED) != 0)
+    {
+        PrintHelp();
+    }
 }
 
 void SerialInterface::Update()
 {
-    /*
-    String cmd, arg;
-    while (ReadInput(cmd, arg))
+    if (_ctx.GetSettingsMgr().GetIntValue(Setting::SERIAL_INPUT_ENABLED) != 0)
     {
-        _ctx.GetPowerMgr().ResetAutoSleepTimer(true);
-        Serial.println(String(F("CMD: ")) + cmd + (arg.length() > 0 ? String(F(" ARG: ")) + arg : String("")));
-        if (cmd == "settings")
+        String cmd, arg;
+        if (ReadInput(cmd, arg))
         {
-            PrintSettings();
+            if (cmd == "settings")
+            {
+                PrintSettings();
+            }
+            else if (cmd == "set")
+            {
+                SetSetting(arg);
+            }
+            else if (cmd == "save")
+            {
+                _ctx.GetSettingsMgr().SaveToEEPROM();
+            }
+            else if (cmd == "runpump")
+            {
+                _ctx.GetPowerMgr().RunWaterPump();
+            }
+            else if (cmd == "help")
+            {
+                PrintHelp();
+            }
+            else
+            {
+                return;
+            }
+
+            _ctx.GetPowerMgr().ResetAutoSleepTimer(true);        
         }
-        else if (cmd == "set")
-        {
-            SetSetting(arg);
-        }
-        else if (cmd == "save")
-        {
-            _ctx.GetSettingsMgr().SaveToEEPROM();
-        }
-        else if (cmd == "runpump")
-        {
-            _ctx.GetPowerMgr().RunWaterPump();
-        }
-        else
-        {
-            PrintHelp();
-        }
-    }*/
+    }
 }
 
 void SerialInterface::PrintHelp()
 {
     Serial.println(F("*************************************************************"));
     Serial.println(F("USAGE:"));
-    Serial.println(F("  help              : prints this message"));
-    Serial.println(F("  settings          : prints current settings"));
-    Serial.println(F("  set               : change value of setting (e.g set WIFI_SSID=My WiFi)"));
-    Serial.println(F("  save              : write settings to EEPROM"));
-    Serial.println(F("  runpump           : runs the pump now"));
+    Serial.println(F("  help      : prints this message"));
+    Serial.println(F("  settings  : prints current settings"));
+    Serial.println(F("  set       : change setting (e.g set WIFI_SSID=My WiFi)"));
+    Serial.println(F("  save      : write settings to EEPROM"));
+    Serial.println(F("  runpump   : runs the pump now"));
     Serial.println(F("*************************************************************"));
 }
 
@@ -67,7 +76,7 @@ void SerialInterface::PrintSettings()
     {
         Serial.println(String(" ") + s.first.c_str() + "=" + s.second.c_str());
     }
-    Serial.println("*************************************************************");
+    Serial.println(F("*************************************************************"));
 }
 
 bool SerialInterface::ReadInput(String &cmd, String &arg)
@@ -83,8 +92,18 @@ bool SerialInterface::ReadInput(String &cmd, String &arg)
             continue;
         }
 
+        if (c > 127)
+        {
+            // HACK: ignore garbage data that is sometimes received after usb cable was disconnected
+            Serial.flush();
+            return false;
+        }
+
         buff += c;
-        delay(1);
+        if (Serial.available() == 0)
+        {
+            delay(1);
+        }
     }
 
     buff.trim();

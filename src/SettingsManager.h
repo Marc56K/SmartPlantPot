@@ -26,6 +26,7 @@
     setting(MQTT_USER) \
     setting(MQTT_KEY) \
     setting(MQTT_TOPIC) \
+    setting(SERIAL_INPUT_ENABLED) \
     setting(NUM_SETTINGS)
 
 #define CREATE_SETTINGS_ENUM(name) name,
