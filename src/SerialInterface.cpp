@@ -47,7 +47,7 @@ void SerialInterface::Update()
             }
             else if (cmd == "runpump")
             {
-                _ctx.GetPowerMgr().RunWaterPump();
+                _ctx.GetPowerMgr().RunWaterPump(false);
             }
             else if (cmd == "restart")
             {

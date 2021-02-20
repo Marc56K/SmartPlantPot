@@ -20,9 +20,9 @@ public:
     void RequestDeepSleep();
     bool DeepSleepRequested();
 
-    void RunWaterPump();
+    void RunWaterPump(const bool wait);
     bool WaterPumpIsRunning();
-    uint32_t GetMillisSinceLastPumping();
+    bool WaterPumpWasRunning(const float seconds);
 
     void Update();
 

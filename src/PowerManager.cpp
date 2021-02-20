@@ -86,53 +86,60 @@ bool PowerManager::DeepSleepRequested()
     return _deepSleepRequested;
 }
 
-void PowerManager::RunWaterPump()
+void PowerManager::RunWaterPump(const bool wait)
 {
     _pumpPower = _ctx.GetSettingsMgr().GetIntValue(Setting::PUMPING_POWER_PERCENT);
     _pumpDuration = 1000 * _ctx.GetSettingsMgr().GetFloatValue(Setting::PUMPING_DURATION_SEC);
-    
-    xTaskCreatePinnedToCore(
-      [](void* p)
-      {
-          static_cast<PowerManager*>(p)->PumpProc();
-      },
-      "PumpRunner", /* Name of the task */
-      10000,  /* Stack size in words */
-      this,  /* Task input parameter */
-      1,  /* Priority of the task */
-      nullptr,  /* Task handle. */
-      0); /* Core where the task should run */
-    
-    _pumpUntil = millis() + _pumpDuration;
+
+    if (wait)
+    {
+        PumpProc();
+        _pumpUntil = millis();
+    }
+    else
+    {
+        xTaskCreatePinnedToCore(
+        [](void* p)
+        {
+            static_cast<PowerManager*>(p)->PumpProc();
+            vTaskDelete(nullptr);
+        },
+        "PumpRunner", /* Name of the task */
+        10000,  /* Stack size in words */
+        this,  /* Task input parameter */
+        1,  /* Priority of the task */
+        nullptr,  /* Task handle. */
+        0); /* Core where the task should run */
+
+        _pumpUntil = millis() + _pumpDuration;
+    }    
 }
 
 void PowerManager::PumpProc()
 {
     analogWrite(PUMP_VCC_PIN, std::min(_pumpPower, 100u), 100u);
     vTaskDelay(_pumpDuration / portTICK_PERIOD_MS);
-    analogWrite(PUMP_VCC_PIN, 0);
-
-    vTaskDelete(nullptr);
+    analogWrite(PUMP_VCC_PIN, 0u, 100u);
 }
 
 bool PowerManager::WaterPumpIsRunning()
 {
-    return GetMillisSinceLastPumping() == 0;
+    return WaterPumpWasRunning(0);
 }
 
-uint32_t PowerManager::GetMillisSinceLastPumping()
+bool PowerManager::WaterPumpWasRunning(const float seconds)
 {
-    uint32_t now = millis();
+    const uint32_t now = millis();
     if (now < _pumpUntil)
     {
-        return 0;
+        return true;
     }
-    return now - _pumpUntil;
+    return (now - _pumpUntil) < seconds * 1000;
 }
 
 void PowerManager::Update()
 {
-    if (millis() < _pumpUntil)
+    if (WaterPumpIsRunning())
     {
         return;
     }
@@ -164,8 +171,6 @@ void PowerManager::Update()
         WiFi.mode(WIFI_OFF);
         esp_wifi_stop();
         adc_power_off();
-
-        //esp_deep_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_OFF);
 
         esp_deep_sleep_start();
     }

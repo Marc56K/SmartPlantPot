@@ -20,10 +20,12 @@ struct SensorStates
     }
 };
 
+class AppContext;
+
 class SensorManager
 {
 public:
-    SensorManager();
+    SensorManager(AppContext& ctx);
     ~SensorManager();
 
     void Init();
@@ -42,6 +44,7 @@ private:
         const int mapSize);
 
 private:
+    AppContext& _ctx;
     SemaphoreHandle_t _mutex;
     EventGroupHandle_t _shutdownRequested;
     EventGroupHandle_t _shutdownCompleted;

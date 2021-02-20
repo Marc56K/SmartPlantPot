@@ -3,6 +3,7 @@
 AppContext::AppContext() : 
     _userInterface(*this),
     _clock(*this),
+    _sensorMgr(*this),
     _powerMgr(*this),
     _networkMgr(*this),
     _scheduler(*this),

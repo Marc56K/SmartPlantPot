@@ -1,11 +1,12 @@
 #include "SensorManager.h"
-#include <Arduino.h>
+#include "AppContext.h"
 #include <DS3232RTC.h>
 #include <algorithm>
 
 #define INIT_DURATION_MILLIS 500
 
-SensorManager::SensorManager() :
+SensorManager::SensorManager(AppContext& ctx) :
+    _ctx(ctx),
     _mutex(nullptr),
     _shutdownRequested(nullptr),
     _shutdownCompleted(nullptr),
@@ -114,8 +115,19 @@ int SensorManager::GetSensorValueMedian(
 
 void SensorManager::Update()
 {
+    if (_ctx.GetPowerMgr().WaterPumpIsRunning())
+    {
+        // pump is interfering with sensor readings
+        return;
+    }
+
     xSemaphoreTakeRecursive(_mutex, portMAX_DELAY);
     {
+        if (_ctx.GetPowerMgr().WaterPumpWasRunning(1))
+        {
+            _analogPinValues.clear();
+        }
+
         if (_analogPinValues.empty())
         {
             ReadAnalogPins();

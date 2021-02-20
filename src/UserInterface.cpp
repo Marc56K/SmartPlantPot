@@ -27,7 +27,7 @@ void UserInterface::Init()
         "Give some water",
         [&]()
         {
-            _ctx.GetPowerMgr().RunWaterPump();
+            _ctx.GetPowerMgr().RunWaterPump(true);
         }));
     p->Add(std::make_shared<ActionButton>(
         "Go to sleep",
@@ -219,7 +219,7 @@ void UserInterface::Update()
         auto btnPressed = _inputMgr.ButtonPressed();
         auto encoderDelta = _inputMgr.GetRotaryEncoderDelta();
 
-        if (pm.GetMillisSinceLastPumping() > 2000)
+        if (!pm.WaterPumpWasRunning(2))
         {
             if (btnPressed)
             {
