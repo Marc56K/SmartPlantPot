@@ -49,9 +49,16 @@ int InputManager::GetRotaryEncoderDelta()
     const int16_t encoderPos = rotaryEncoder.readEncoder();
     if (_lastEncoderPos != encoderPos)
     {
-        const int16_t delta = (encoderPos - _lastEncoderPos) / 2;
-        _lastEncoderPos = _lastEncoderPos + 2 * delta;
-        //Serial.println(String("ROT-ENC: ") + delta);
+        static bool lastWasZero = false;
+        const int16_t rawDelta = encoderPos - _lastEncoderPos;
+        int16_t delta = rawDelta / 2;
+        _lastEncoderPos = encoderPos;
+        if (delta == 0 && lastWasZero)
+        {
+            delta = rawDelta;            
+        }
+        lastWasZero = delta == 0;
+        //Serial.println(String("ROT-ENC RAW: ") + rawDelta + " DELTA: " + delta);
         return delta;
     }
     return 0;
