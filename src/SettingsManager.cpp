@@ -81,7 +81,11 @@ void SettingsManager::InitDefaultValues()
     init(MQTT_KEY, "");
     init(MQTT_TOPIC, "Unknown/feeds/smartplantpot.");
     init(MQTT_ENABLED, "0");
-    init(SERIAL_INPUT_ENABLED, "0");
+    init(SERIAL_CTRL_ENABLED, "0");
+    init(SOIL_SENSOR_MAX_VALUE, "2960");
+    init(SOIL_SENSOR_MIN_VALUE, "1290");
+    init(TANK_SENSOR_MAX_VALUE, "3725");
+    init(TANK_SENSOR_MIN_VALUE, "125");
 
     SaveToEEPROM();
 }

@@ -73,7 +73,7 @@ void SerialInterface::Update()
 
 bool SerialInterface::IsEnabled()
 {
-    return _ctx.GetSettingsMgr().GetIntValue(Setting::SERIAL_INPUT_ENABLED) != 0;
+    return _ctx.GetSettingsMgr().GetIntValue(Setting::SERIAL_CTRL_ENABLED) != 0;
 }
 
 void SerialInterface::PrintHelp()

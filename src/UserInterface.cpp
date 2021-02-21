@@ -195,11 +195,43 @@ void UserInterface::Init()
             sm.SetValue(SLEEP_DURATION_MINUTES, (int)val);
         }));
     p->Add(std::make_shared<BoolEditor>(
-        "Serial Input",
-        sm.GetIntValue(SERIAL_INPUT_ENABLED) != 0,
+        "Serial Ctrl",
+        sm.GetIntValue(SERIAL_CTRL_ENABLED) != 0,
         [&](const bool val)
         {
-            sm.SetValue(SERIAL_INPUT_ENABLED, val ? 1 : 0);
+            sm.SetValue(SERIAL_CTRL_ENABLED, val ? 1 : 0);
+        }));
+    p->Add(std::make_shared<NumberEditor>(
+        "Soil S. Max",
+        "", 0, 1, 0, 4096,
+        sm.GetIntValue(SOIL_SENSOR_MAX_VALUE),
+        [&](const double val)
+        {
+            sm.SetValue(SOIL_SENSOR_MAX_VALUE, (int)val);
+        }));
+    p->Add(std::make_shared<NumberEditor>(
+        "Soil S. Min",
+        "", 0, 1, 0, 4096,
+        sm.GetIntValue(SOIL_SENSOR_MIN_VALUE),
+        [&](const double val)
+        {
+            sm.SetValue(SOIL_SENSOR_MIN_VALUE, (int)val);
+        }));
+    p->Add(std::make_shared<NumberEditor>(
+        "Tank S. Max",
+        "", 0, 1, 0, 4096,
+        sm.GetIntValue(TANK_SENSOR_MAX_VALUE),
+        [&](const double val)
+        {
+            sm.SetValue(TANK_SENSOR_MAX_VALUE, (int)val);
+        }));
+    p->Add(std::make_shared<NumberEditor>(
+        "Tank S. Min",
+        "", 0, 1, 0, 4096,
+        sm.GetIntValue(TANK_SENSOR_MIN_VALUE),
+        [&](const double val)
+        {
+            sm.SetValue(TANK_SENSOR_MIN_VALUE, (int)val);
         }));
 
     // info-page

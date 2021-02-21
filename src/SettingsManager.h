@@ -27,7 +27,11 @@
     setting(MQTT_USER) \
     setting(MQTT_KEY) \
     setting(MQTT_TOPIC) \
-    setting(SERIAL_INPUT_ENABLED) \
+    setting(SERIAL_CTRL_ENABLED) \
+    setting(SOIL_SENSOR_MAX_VALUE) \
+    setting(SOIL_SENSOR_MIN_VALUE) \
+    setting(TANK_SENSOR_MAX_VALUE) \
+    setting(TANK_SENSOR_MIN_VALUE) \
     setting(NUM_SETTINGS)
 
 #define CREATE_SETTINGS_ENUM(name) name,

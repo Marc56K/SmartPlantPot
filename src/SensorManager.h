@@ -38,10 +38,12 @@ private:
     int GetSensorValueMedian(const int pin, 
         const int samples);
 
-    int GetTransformedSensorValue(
-        const int value,
-        const int m[][2],
-        const int mapSize);
+    float GetMappedSensorValue(
+        const float value,
+        const float minValue,
+        const float maxValue,
+        const float lut[][2],
+        const uint8_t mapSize) const;
 
 private:
     AppContext& _ctx;

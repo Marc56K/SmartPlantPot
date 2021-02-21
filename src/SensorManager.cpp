@@ -138,6 +138,8 @@ void SensorManager::Update()
     }
     xSemaphoreGiveRecursive(_mutex);
 
+    auto& s = _ctx.GetSettingsMgr();
+
     // BatVoltage
     {
         _sensorStates.BatVoltage = 2.22f * 3.3f * _sensorStates.BatRaw / 4095;
@@ -151,42 +153,43 @@ void SensorManager::Update()
 
     // SoilMoisture
     {
-        static const int sensor2Percent[][2] = 
+        static const float lut[][2] = 
         {
-            { 2960,	0 },
-            { 2266,	14 },
-            { 1815,	29 },
-            { 1585,	43 },
-            { 1462,	57 },
-            { 1382,	71 },
-            { 1330,	86 },
-            { 1290,	100 }
+            { 1.0000f, 0 },
+            { 0.5844f, 14 },
+            { 0.3144f, 29 },
+            { 0.1766f, 43 },
+            { 0.1030f, 57 },
+            { 0.0551f, 71 },
+            { 0.0240f, 86 },
+            { 0.0000f, 100 }
         };
-        _sensorStates.SoilMoistureInPerCent = GetTransformedSensorValue(
-            _sensorStates.SoilMoistureRaw, 
-            sensor2Percent, 
-            sizeof(sensor2Percent) / sizeof(sensor2Percent[0]));
+        _sensorStates.SoilMoistureInPerCent = GetMappedSensorValue(
+            _sensorStates.SoilMoistureRaw,
+            s.GetIntValue(Setting::SOIL_SENSOR_MIN_VALUE),
+            s.GetIntValue(Setting::SOIL_SENSOR_MAX_VALUE),
+            lut, sizeof(lut) / sizeof(lut[0]));
     }
 
     // WaterTankLevel
     {
-        static const int sensor2Percent[][2] =
-        
+        static const float lut[][2] =        
         {
-            { 3725,	0 },
-            { 3700,	17 },
-            { 3658,	34 },
-            { 3589,	52 },
-            { 3444,	69 },
-            { 3266,	78 },
-            { 2830,	87 },
-            { 1879,	95 },
-            { 125, 100 }
+            { 1.0000f, 0 },
+            { 0.9931f, 17 },
+            { 0.9814f, 34 },
+            { 0.9622f, 52 },
+            { 0.9219f, 69 },
+            { 0.8725f, 78 },
+            { 0.7514f, 87 },
+            { 0.4872f, 95 },
+            { 0.0000f, 100 }
         };
-        _sensorStates.WaterTankLevelInPerCent = GetTransformedSensorValue(
+        _sensorStates.WaterTankLevelInPerCent = GetMappedSensorValue(
             _sensorStates.WaterTankLevelRaw, 
-            sensor2Percent, 
-            sizeof(sensor2Percent) / sizeof(sensor2Percent[0]));
+            s.GetIntValue(Setting::TANK_SENSOR_MIN_VALUE),
+            s.GetIntValue(Setting::TANK_SENSOR_MAX_VALUE),
+            lut, sizeof(lut) / sizeof(lut[0]));
     }
 
     _sensorStates.IsValid = true;
@@ -197,25 +200,35 @@ const SensorStates& SensorManager::States() const
     return _sensorStates;
 }
 
-int SensorManager::GetTransformedSensorValue(
-        const int value,
-        const int m[][2],
-        const int mapSize)
+float SensorManager::GetMappedSensorValue(
+        const float value,
+        const float minValue,
+        const float maxValue,
+        const float lut[][2],
+        const uint8_t mapSize) const
 {
-    if (value > m[0][0])
-        return m[0][1]; // 0%
+    const float val = (value - minValue) / (maxValue - minValue);
 
-    if (value < m[mapSize - 1][0])
-        return m[mapSize - 1][1]; // 100%
+    if (val > lut[0][0])
+        return lut[0][1]; // 0%
 
-    for (int i = 0; i < mapSize - 1; ++i)
+    if (val < lut[mapSize - 1][0])
+        return lut[mapSize - 1][1]; // 100%
+
+    auto mapf = [](float x, float in_min, float in_max, float out_min, float out_max) -> float
     {
-        if (value < m[i][0] && value >= m[i + 1][0])
+        const float divisor = (in_max - in_min);
+        return (x - in_min) * (out_max - out_min) / divisor + out_min;
+    };
+
+    for (uint8_t i = 0; i < mapSize - 1; ++i)
+    {
+        if (val < lut[i][0] && val >= lut[i + 1][0])
         {
-            return map(
-                value, 
-                m[i][0], m[i + 1][0],
-                m[i][1], m[i + 1][1]);
+            return mapf(
+                val, 
+                lut[i][0], lut[i + 1][0],
+                lut[i][1], lut[i + 1][1]);
         }
     }
     return 0;
