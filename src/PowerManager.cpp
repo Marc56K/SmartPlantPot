@@ -6,8 +6,6 @@
 #define WAKE_TIME_AFTER_USER_INPUT 60 // sec
 #define WAKE_TIME_AFTER_ALERT 10
 
-volatile long pumpDuration = 0;
-
 PowerManager::PowerManager(AppContext& ctx) :
     _ctx(ctx),
     _sleepTime(-1),
@@ -85,24 +83,13 @@ bool PowerManager::DeepSleepRequested()
 
 void PowerManager::StartPumpImpulse()
 {
-    pumpDuration = 1000 * _ctx.GetSettingsMgr().GetFloatValue(Setting::PUMP_IMPULSE_SEC);
-    
-    xTaskCreatePinnedToCore(
-      [](void* p)
-      {
-          digitalWrite(PUMP_VCC_PIN, HIGH);
-          vTaskDelay(pumpDuration / portTICK_PERIOD_MS);
-          digitalWrite(PUMP_VCC_PIN, LOW);
-          vTaskDelete(nullptr);
-      },
-      "PumpRunner", /* Name of the task */
-      10000,  /* Stack size in words */
-      nullptr,  /* Task input parameter */
-      1,  /* Priority of the task */
-      nullptr,  /* Task handle. */
-      0); /* Core where the task should run */
-    
+    const long pumpDuration = 1000 * _ctx.GetSettingsMgr().GetFloatValue(Setting::PUMP_IMPULSE_SEC);
     _pumpUntil = millis() + pumpDuration;
+    
+    digitalWrite(PUMP_VCC_PIN, HIGH);
+    vTaskDelay(pumpDuration / portTICK_PERIOD_MS);
+    digitalWrite(PUMP_VCC_PIN, LOW);
+    delay(50);
 }
 
 unsigned long PowerManager::GetMillisSinceLastPumpImpulse()

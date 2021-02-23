@@ -20,7 +20,6 @@ public:
     bool DeepSleepRequested();
 
     void StartPumpImpulse();
-    void StopPumpImpulse();
     unsigned long GetMillisSinceLastPumpImpulse();
 
     void Update();
