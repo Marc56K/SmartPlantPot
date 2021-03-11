@@ -23,8 +23,13 @@ SettingsManager::~SettingsManager()
 void SettingsManager::Init()
 {
     _settings.clear();
-    EEPROM.begin(EEPROM_SIZE);
-    uint8_t* ptr = EEPROM.getDataPtr();
+    std::vector<uint8_t> buffer(EEPROM_SIZE);
+    if (EEPROM.begin(EEPROM_SIZE))
+    {
+        EEPROM.readBytes(0, buffer.data(), buffer.size());
+        EEPROM.end();
+    }
+    uint8_t *ptr = buffer.data();
 
     uint32_t hash = *((uint32_t*)ptr);
     ptr += sizeof(uint32_t);
@@ -48,7 +53,6 @@ void SettingsManager::Init()
             _settings[key] = value;
         }
     }
-    EEPROM.end();
 
     _pendingChanges = false;
 
