@@ -18,16 +18,11 @@ Display::~Display()
 
 void Display::Init()
 {
-    if (_display.Init(lut_full_update) == 0)
-    {
-        _display.ClearFrameMemory(0xFF);
-        _display.DisplayFrame();
-    }
-
-    if (_display.Init(lut_partial_update) != 0)
-    {
-        Serial.println("e-Paper init failed");
-    }
+    _display.Init(lut_partial_update);
+    _display.ClearFrameMemory(0);
+    _display.DisplayFrame(true);
+    _display.ClearFrameMemory(0xFF);
+    _display.DisplayFrame(true);
 }
 
 void Display::Present()
