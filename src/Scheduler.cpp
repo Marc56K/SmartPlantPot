@@ -86,7 +86,7 @@ void Scheduler::Update()
         pumpState.active &= _ctx.GetSensorMgr().GetSoilMoisture() < sm.GetIntValue(Setting::SOIL_MOISTURE_PERCENT);
     }
 
-    auto seepage = sm.GetIntValue(Setting::SEEPAGE_DURATION_MINUTES) * 60;
+    auto seepage = sm.GetIntValue(Setting::SEEPAGE_DURATION_MINUTES) * SECS_PER_MIN;
     if (pumpState.active && (pumpState.numImpulses == 0 || pumpState.lastImpulseTime + seepage <= now.utcTime))
     {
         _ctx.GetPowerMgr().StartPumpImpulse();
@@ -123,6 +123,10 @@ void Scheduler::GetNextWakupUtcTime(int& utcHour, int& utcMinute)
         const long nextImpulseTime = pumpState.lastImpulseTime + seepageDuration;
         updateWakeTime(nextImpulseTime);
     }
+
+    const long sleepDuration = sm.GetIntValue(Setting::SLEEP_DURATION_MINUTES) * SECS_PER_MIN;
+    const long nextWakeTime = now.utcTime + sleepDuration;
+    updateWakeTime(nextWakeTime);
     
     utcHour = hour(wakeTime);
     utcMinute = minute(wakeTime);
