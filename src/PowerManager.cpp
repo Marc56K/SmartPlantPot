@@ -159,9 +159,6 @@ void PowerManager::Update()
         // wake on timer alert
         esp_sleep_enable_ext1_wakeup(0x8000, ESP_EXT1_WAKEUP_ALL_LOW); // clock interrupt at pin[15]
 
-        // wake after sleep time
-        esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * 60 * _ctx.GetSettingsMgr().GetIntValue(Setting::SLEEP_DURATION_MINUTES));
-
         if (Serial)
         {
             Serial.println("going to sleep");
