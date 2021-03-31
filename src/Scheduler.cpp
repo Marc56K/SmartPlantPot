@@ -38,10 +38,10 @@ void Scheduler::Update()
 
     if (!pumpState.active && pumpState.lastImpulseTime + 61 < now.utcTime)
     {
-        const bool validHour = sm.GetIntValue(Setting::WATERING_TIME_HH) == hour(now.localTime);
-        const bool validMinute = sm.GetIntValue(Setting::WATERING_TIME_MM) == minute(now.localTime);
+        const bool validHour = sm.GetIntValue(Setting::WATERING_TIME_HH) == hour(now.localTime + 30);
+        const bool validMinute = sm.GetIntValue(Setting::WATERING_TIME_MM) == minute(now.localTime + 30);
         const bool validTime = validHour && validMinute;
-        const bool validDay = elapsedDays(now.localTime) % sm.GetIntValue(Setting::WATERING_INTERVAL_DAYS) == 0;
+        const bool validDay = elapsedDays(now.localTime + 30) % sm.GetIntValue(Setting::WATERING_INTERVAL_DAYS) == 0;
 
         if (validTime && validDay)
         {
@@ -60,7 +60,7 @@ void Scheduler::Update()
     }
 
     auto seepage = sm.GetIntValue(Setting::SEEPAGE_DURATION_MINUTES) * SECS_PER_MIN;
-    if (pumpState.active && (pumpState.numImpulses == 0 || pumpState.lastImpulseTime + seepage <= now.utcTime))
+    if (pumpState.active && (pumpState.numImpulses == 0 || pumpState.lastImpulseTime + seepage <= now.utcTime + 30))
     {
         _ctx.GetPowerMgr().RunWaterPump(true);
         pumpState.numImpulses++;
