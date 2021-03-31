@@ -83,6 +83,7 @@ bool PowerManager::DeepSleepRequested()
 
 void PowerManager::StartPumpImpulse()
 {
+    Serial.println("run pump");
     const long pumpDuration = 1000 * _ctx.GetSettingsMgr().GetFloatValue(Setting::PUMP_IMPULSE_SEC);
     _pumpUntil = millis() + pumpDuration;
     
