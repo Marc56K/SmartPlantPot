@@ -88,6 +88,7 @@ bool PowerManager::DeepSleepRequested()
 
 void PowerManager::RunWaterPump(const bool wait)
 {
+    Serial.println("run pump");
     _pumpPower = _ctx.GetSettingsMgr().GetIntValue(Setting::PUMPING_POWER_PERCENT);
     _pumpDuration = 1000 * _ctx.GetSettingsMgr().GetFloatValue(Setting::PUMPING_DURATION_SEC);
 

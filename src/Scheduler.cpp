@@ -34,6 +34,8 @@ void Scheduler::Update()
     auto& sm = _ctx.GetSettingsMgr();
     auto now = _ctx.GetClock().Now();
 
+    pumpState.lastImpulseTime = std::min(pumpState.lastImpulseTime, now.utcTime);
+
     if (!pumpState.active && pumpState.lastImpulseTime + 61 < now.utcTime)
     {
         const bool validHour = sm.GetIntValue(Setting::WATERING_TIME_HH) == hour(now.localTime);

@@ -44,6 +44,7 @@ void MqttClient::Update()
         auto& s = _ctx.GetSensorMgr().States();
         auto publishValue = [&](const char* name, float value, int cacheIdx)
         {
+            lastMqttPublishTime[cacheIdx] = std::min(lastMqttPublishTime[cacheIdx], now);
             if (lastMqttPublishTime[cacheIdx] + 60 < now)
             {
                 std::string topic = _prefix + name;

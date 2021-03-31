@@ -36,6 +36,13 @@ bool NetworkManager::WifiConnected()
 void NetworkManager::Init()
 {
     Update();
+    uint32_t t = 2000;
+    while (!_wifiSSID.empty() && !WifiConnected() && t > 0)
+    {
+        const uint32_t waitTime = std::min(10u, t);
+        vTaskDelay(waitTime);
+        t -= waitTime;
+    }
 }
 
 void NetworkManager::Update()

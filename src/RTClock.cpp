@@ -67,6 +67,9 @@ RTClock::~RTClock()
 
 void RTClock::Init()
 {
+    auto now = Now();
+    Serial.println(String("RTC: ") + now.GetDate(true) + " - " + now.GetTime(true));  
+
     _ntpServer = _ctx.GetSettingsMgr().GetStringValue(Setting::TIME_SERVER);
     _ntpClient.setPoolServerName(_ntpServer.data());
     _ntpClient.setTimeOffset(0);
@@ -81,7 +84,8 @@ void RTClock::Update()
     if (_ctx.GetNetworkMgr().WifiConnected() && _ntpClient.update())
     {   
         rtc.set(_ntpClient.getEpochTime());
-        Serial.println("ntp update completed");  
+        auto now = Now();
+        Serial.println(String("ntp update completed: ") + now.GetDate(true) + " - " + now.GetTime(true));
     }
 
     int hh = 0;
