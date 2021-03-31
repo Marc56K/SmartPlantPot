@@ -38,12 +38,12 @@ void Scheduler::Update()
 
     if (!pumpState.active && pumpState.lastImpulseTime + 61 < now.utcTime)
     {
-        const bool validHour = sm.GetIntValue(Setting::SCHEDULE_TIME_HH) == hour(now.localTime);
-        const bool validMinute = sm.GetIntValue(Setting::SCHEDULE_TIME_MM) == minute(now.localTime);
+        const bool validHour = sm.GetIntValue(Setting::SCHEDULE_TIME_HH) == hour(now.localTime + 30);
+        const bool validMinute = sm.GetIntValue(Setting::SCHEDULE_TIME_MM) == minute(now.localTime + 30);
         const bool validTime = validHour && validMinute;
 
         bool validDay = false;
-        switch(weekday(now.localTime))
+        switch(weekday(now.localTime + 30))
         {
             case dowSunday:
                 validDay = sm.GetIntValue(Setting::SCHEDULE_DAY_SU) != 0;
@@ -88,7 +88,7 @@ void Scheduler::Update()
     }
 
     auto seepage = sm.GetIntValue(Setting::SEEPAGE_DURATION_MINUTES) * SECS_PER_MIN;
-    if (pumpState.active && (pumpState.numImpulses == 0 || pumpState.lastImpulseTime + seepage <= now.utcTime))
+    if (pumpState.active && (pumpState.numImpulses == 0 || pumpState.lastImpulseTime + seepage <= now.utcTime + 30))
     {
         _ctx.GetPowerMgr().StartPumpImpulse();
         pumpState.numImpulses++;
