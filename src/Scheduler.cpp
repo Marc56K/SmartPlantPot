@@ -96,7 +96,7 @@ void Scheduler::Update()
     }
 }
 
-void Scheduler::GetNextWakupUtcTime(int& utcHour, int& utcMinute)
+long Scheduler::GetNextWakupUtcTime(int& utcHour, int& utcMinute)
 {
     auto& sm = _ctx.GetSettingsMgr();
     auto& clk = _ctx.GetClock();
@@ -105,7 +105,7 @@ void Scheduler::GetNextWakupUtcTime(int& utcHour, int& utcMinute)
     long wakeTime = now.utcTime + SECS_PER_DAY;
     auto updateWakeTime = [&wakeTime, &now](const long t)
     {
-        const long minWakeTime = now.utcTime + SECS_PER_MIN;
+        const long minWakeTime = now.utcTime;
         if (t >= minWakeTime && t < wakeTime)
         {
             wakeTime = t;
@@ -131,4 +131,6 @@ void Scheduler::GetNextWakupUtcTime(int& utcHour, int& utcMinute)
     
     utcHour = hour(wakeTime);
     utcMinute = minute(wakeTime);
+
+    return wakeTime - now.utcTime;
 }
