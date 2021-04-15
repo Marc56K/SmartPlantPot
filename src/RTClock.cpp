@@ -56,8 +56,7 @@ String RTDateTime::GetTime(const bool utc) const
 RTClock::RTClock(AppContext& ctx) : 
     _ctx(ctx),
     _ntpClient(ntpUDP),
-    _alarmHH(-1),
-    _alarmMM(-1)
+    _syncDone(false)
 {
 }
 
@@ -81,26 +80,12 @@ void RTClock::Update()
 {
     DS3232RTC rtc(true);
 
-    if (_ctx.GetNetworkMgr().WifiConnected() && _ntpClient.update())
+    if (!_syncDone && _ctx.GetNetworkMgr().WifiConnected() && _ntpClient.update())
     {   
         rtc.set(_ntpClient.getEpochTime());
+        rtc.alarmInterrupt(ALARM_1, false);
         auto now = Now();
         Serial.println(String("ntp update completed: ") + now.GetDate(true) + " - " + now.GetTime(true));  
-    }
-
-    int hh = 0;
-    int mm = 0;
-    _ctx.GetScheduler().GetNextWakupUtcTime(hh, mm);
-
-    if (_alarmHH != hh || _alarmMM != mm)
-    {
-        _alarmHH = hh;
-        _alarmMM = mm;
-        Serial.println(String("set utc-alarm: ") + StringFormatHelper::ToString(hh, 2) + ":" + StringFormatHelper::ToString(mm, 2));
-        rtc.setAlarm(ALM1_MATCH_HOURS, 0, mm, hh, 0);
-        rtc.alarm(ALARM_1);
-        rtc.squareWave(SQWAVE_NONE);
-        rtc.alarmInterrupt(ALARM_1, true);
     }
 }
 
