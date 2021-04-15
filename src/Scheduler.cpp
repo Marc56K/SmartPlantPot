@@ -4,7 +4,6 @@
 
 struct PumpState
 {
-    bool initDone;
     bool active;
     long day;
     int numImpulses;
@@ -41,6 +40,12 @@ void Scheduler::Update()
     const long hh = sm.GetIntValue(Setting::WATERING_TIME_HH);
     const long mm = sm.GetIntValue(Setting::WATERING_TIME_MM);
     const long scheduleTime = previousMidnight(now.localTime) + hh * SECS_PER_HOUR + mm * SECS_PER_MIN;
+
+    if (sm.HasPendingChanges())
+    {
+        pumpState.day = 0;
+        return;
+    }
 
     if (pumpState.day != today)
     {
