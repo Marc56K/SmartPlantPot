@@ -11,7 +11,7 @@ public:
     void Init();
     void Update();
 
-    long GetNextWakupUtcTime(int& hour, int& minute);
+    long GetSleepDuration();
 
 private:
     AppContext& _ctx;

@@ -158,10 +158,9 @@ void PowerManager::Update()
         esp_sleep_enable_ext0_wakeup(ROTENC_SW_PIN, 1);
 
         // wake on timer alert
-        esp_sleep_enable_ext1_wakeup(0x8000, ESP_EXT1_WAKEUP_ALL_LOW); // clock interrupt at pin[15]
+        //esp_sleep_enable_ext1_wakeup(0x8000, ESP_EXT1_WAKEUP_ALL_LOW); // clock interrupt at pin[15]
 
-        int h, m;
-        long sleepDuration = _ctx.GetScheduler().GetNextWakupUtcTime(h, m);
+        const long sleepDuration = _ctx.GetScheduler().GetSleepDuration();
         esp_sleep_enable_timer_wakeup(uS_TO_S_FACTOR * sleepDuration);
 
         if (Serial)

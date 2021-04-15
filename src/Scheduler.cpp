@@ -4,9 +4,11 @@
 
 struct PumpState
 {
+    bool initDone;
     bool active;
+    long day;
     int numImpulses;
-    long lastImpulseTime;
+    long nextImpulseTime; // local time
 };
 
 RTC_DATA_ATTR PumpState pumpState = {};
@@ -32,52 +34,52 @@ void Scheduler::Update()
     }
 
     auto& sm = _ctx.GetSettingsMgr();
-    auto now = _ctx.GetClock().Now();
+    auto& clk = _ctx.GetClock();
+    auto now = clk.Now();
 
-    pumpState.lastImpulseTime = std::min(pumpState.lastImpulseTime, now.utcTime);
+    const long today = elapsedDays(now.localTime);
+    const long hh = sm.GetIntValue(Setting::WATERING_TIME_HH);
+    const long mm = sm.GetIntValue(Setting::WATERING_TIME_MM);
+    const long scheduleTime = previousMidnight(now.localTime) + hh * SECS_PER_HOUR + mm * SECS_PER_MIN;
 
-    if (!pumpState.active && pumpState.lastImpulseTime + 61 < now.utcTime)
+    if (pumpState.day != today)
     {
-        const bool validHour = sm.GetIntValue(Setting::WATERING_TIME_HH) == hour(now.localTime + 30);
-        const bool validMinute = sm.GetIntValue(Setting::WATERING_TIME_MM) == minute(now.localTime + 30);
-        const bool validTime = validHour && validMinute;
-        const bool validDay = elapsedDays(now.localTime + 30) % sm.GetIntValue(Setting::WATERING_INTERVAL_DAYS) == 0;
-
-        if (validTime && validDay)
+        pumpState.day = today;
+        if (today % sm.GetIntValue(Setting::WATERING_INTERVAL_DAYS) == 0)
         {
             pumpState.active = true;
+            pumpState.nextImpulseTime = scheduleTime;
             pumpState.numImpulses = 0;
-            pumpState.lastImpulseTime = 0;
         }
     }
 
     if (pumpState.active)
     {
+        pumpState.active &= now.localTime < pumpState.nextImpulseTime + SECS_PER_HOUR;
         pumpState.active &= sm.HasPendingChanges() == false;
         pumpState.active &= sm.GetIntValue(Setting::PUMP_ENABLED) != 0;
         pumpState.active &= pumpState.numImpulses < sm.GetIntValue(Setting::MAX_PUMPING_REPEATS);
         pumpState.active &= _ctx.GetSensorMgr().States().SoilMoistureInPerCent < sm.GetIntValue(Setting::SOIL_MOISTURE_PERCENT);
     }
-
-    auto seepage = sm.GetIntValue(Setting::SEEPAGE_DURATION_MINUTES) * SECS_PER_MIN;
-    if (pumpState.active && (pumpState.numImpulses == 0 || pumpState.lastImpulseTime + seepage <= now.utcTime + 30))
+    
+    if (pumpState.active && now.localTime >= pumpState.nextImpulseTime)
     {
         _ctx.GetPowerMgr().RunWaterPump(true);
         pumpState.numImpulses++;
-        pumpState.lastImpulseTime = now.utcTime;
+        pumpState.nextImpulseTime = now.localTime + sm.GetIntValue(Setting::SEEPAGE_DURATION_MINUTES) * SECS_PER_MIN;
     }
 }
 
-long Scheduler::GetNextWakupUtcTime(int& utcHour, int& utcMinute)
+long Scheduler::GetSleepDuration()
 {
     auto& sm = _ctx.GetSettingsMgr();
     auto& clk = _ctx.GetClock();
     const auto now = clk.Now();
 
-    long wakeTime = now.utcTime + SECS_PER_DAY;
+    long wakeTime = now.localTime + SECS_PER_DAY;
     auto updateWakeTime = [&wakeTime, &now](const long t)
     {
-        const long minWakeTime = now.utcTime;
+        const long minWakeTime = now.localTime;
         if (t >= minWakeTime && t < wakeTime)
         {
             wakeTime = t;
@@ -86,23 +88,15 @@ long Scheduler::GetNextWakupUtcTime(int& utcHour, int& utcMinute)
 
     const long hh = sm.GetIntValue(Setting::WATERING_TIME_HH);
     const long mm = sm.GetIntValue(Setting::WATERING_TIME_MM);
-    const long scheduleTime = hh * SECS_PER_HOUR + mm * SECS_PER_MIN - clk.GetTimeOffset();
-    updateWakeTime(previousMidnight(now.utcTime) + scheduleTime);
-    updateWakeTime(nextMidnight(now.utcTime) + scheduleTime);
-
-    if (pumpState.active)
-    {
-        const long seepageDuration = sm.GetIntValue(Setting::SEEPAGE_DURATION_MINUTES) * SECS_PER_MIN;
-        const long nextImpulseTime = pumpState.lastImpulseTime + seepageDuration;
-        updateWakeTime(nextImpulseTime);
-    }
+    const long scheduleTime = hh * SECS_PER_HOUR + mm * SECS_PER_MIN;
+    updateWakeTime(previousMidnight(now.localTime) + scheduleTime);
+    updateWakeTime(nextMidnight(now.localTime) + scheduleTime);
     
     const long sleepDuration = sm.GetIntValue(Setting::SLEEP_DURATION_MINUTES) * SECS_PER_MIN;
-    const long nextWakeTime = now.utcTime + sleepDuration;
+    const long nextWakeTime = now.localTime + sleepDuration;
     updateWakeTime(nextWakeTime);
 
-    utcHour = hour(wakeTime);
-    utcMinute = minute(wakeTime);
+    updateWakeTime(pumpState.nextImpulseTime);
 
-    return wakeTime - now.utcTime;
+    return wakeTime - now.localTime;
 }

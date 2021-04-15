@@ -34,6 +34,5 @@ private:
     AppContext& _ctx;
     std::string _ntpServer;
     NTPClient _ntpClient;
-    int _alarmHH;
-    int _alarmMM;
+    bool _syncDone;
 };
